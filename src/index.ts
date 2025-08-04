@@ -1,3 +1,4 @@
-const z = {};
+import number from "./number";
+import string from "./string";
 
-export default z;
+export default { string, number };
