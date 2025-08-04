@@ -1,15 +1,3 @@
-# zod
+# my own zod
 
-To install dependencies:
-
-```bash
-bun install
-```
-
-To run:
-
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.2.9. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+I though it would be fun to create my own version of zod in order to practice my Typescript knowledge.
