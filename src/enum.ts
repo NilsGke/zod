@@ -1,7 +1,9 @@
 import { ZodBaseClass } from "./base";
 import type { CheckResult } from "./types";
 
-class ZodEnum<T extends readonly string[]> extends ZodBaseClass<T[number]> {
+class ZodEnum<T extends readonly [string, ...string[]]> extends ZodBaseClass<
+  T[number]
+> {
   constructor(validStrings: T) {
     super(
       (input): input is string => typeof input === "string",
@@ -22,11 +24,11 @@ class ZodEnum<T extends readonly string[]> extends ZodBaseClass<T[number]> {
   }
 
   // override parse and safeParse to make input accept strings instead of exact literal
-  parse = (input: string) => super.parse(input);
-  safeParse = (input: string) => super.safeParse(input);
+  parse = (input: string) => super.parse(input as T[number]);
+  safeParse = (input: string) => super.safeParse(input as T[number]);
 }
 
-const _enum = <T extends readonly string[]>(validStrings: T) =>
-  new ZodEnum(validStrings);
+const _enum = <const T extends [string, ...string[]]>(values: T) =>
+  new ZodEnum(values);
 
 export default _enum;
