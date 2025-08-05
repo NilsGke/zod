@@ -1,13 +1,3 @@
-// z.number().gt(5);
-// z.number().gte(5);                     // alias .min(5)
-// z.number().lt(5);
-// z.number().lte(5);                     // alias .max(5)
-// z.number().positive();
-// z.number().nonnegative();
-// z.number().negative();
-// z.number().nonpositive();
-// z.number().multipleOf(5);              // alias .step(5)
-
 import type { Check, CheckResult, ZodClass } from "./types";
 
 class ZodNumber implements ZodClass<number> {

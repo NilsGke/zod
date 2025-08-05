@@ -1,4 +1,4 @@
-import type { Check, CheckResult, ZodClass } from "./types";
+import type { CheckResult, ZodClass } from "./types";
 
 interface StringCheck {
   apply: (str: string) => CheckResult<string>;
@@ -10,7 +10,7 @@ class ZodString implements ZodClass<string> {
   baseCheck(input: string): CheckResult<string> {
     return typeof input === "string"
       ? { success: true, result: input }
-      : { success: false, errorMessage: "input is not a string" };
+      : { success: false, errorMessage: "input must be a string" };
   }
 
   min(length: number) {

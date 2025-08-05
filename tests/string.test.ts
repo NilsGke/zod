@@ -1,7 +1,15 @@
 import { describe, expect, test } from "bun:test";
 import z from "../src";
-import { CheckResult } from "../src/types";
 import { expectZodErrorMessage } from "./util";
+
+describe("z.string()", () => {
+  test("not a string", () => {
+    expectZodErrorMessage(z.string().safeParse(3 as any)).toMatch(
+      /input must be a string/
+    );
+  });
+  test("string", () => expect(z.string().parse("abc")).toBe("abc"));
+});
 
 // string.min
 describe("z.string().min()", () => {
