@@ -15,6 +15,4 @@ export interface FailedResult {
 
 export type CheckResult<T> = SuccessfulResult<T> | FailedResult;
 
-export type Infer<T extends ZodBaseClass<any>> = T extends ZodBaseClass<infer U>
-  ? U
-  : never;
+export type Infer<T extends ZodBaseClass<any>> = ReturnType<T["parse"]>;
