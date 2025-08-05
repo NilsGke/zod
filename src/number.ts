@@ -1,16 +1,15 @@
-import type { Check, CheckResult, ZodClass } from "./types";
+import { ZodBaseClass, type Check } from "./types";
 
-class ZodNumber implements ZodClass<number> {
-  _checks: Check<number>[] = [{ apply: this.baseCheck }];
-
-  baseCheck(input: number): CheckResult<number> {
-    return typeof input === "number" && !isNaN(input)
-      ? { success: true, result: input }
-      : { success: false, errorMessage: "input must be a number" };
+class ZodNumber extends ZodBaseClass<number> {
+  constructor() {
+    super(
+      (input: unknown) => typeof input === "number",
+      "input must be a number"
+    );
   }
 
   gt(max: number) {
-    this._checks.push({
+    this.addCheck({
       apply: (num) =>
         num > max
           ? { success: true, result: num }
@@ -23,7 +22,7 @@ class ZodNumber implements ZodClass<number> {
   }
 
   gte(max: number) {
-    this._checks.push({
+    this.addCheck({
       apply: (num) =>
         num >= max
           ? { success: true, result: num }
@@ -36,7 +35,7 @@ class ZodNumber implements ZodClass<number> {
   }
 
   lt(max: number) {
-    this._checks.push({
+    this.addCheck({
       apply: (num) =>
         num < max
           ? { success: true, result: num }
@@ -49,7 +48,7 @@ class ZodNumber implements ZodClass<number> {
   }
 
   lte(max: number) {
-    this._checks.push({
+    this.addCheck({
       apply: (num) =>
         num <= max
           ? { success: true, result: num }
@@ -62,7 +61,7 @@ class ZodNumber implements ZodClass<number> {
   }
 
   positive() {
-    this._checks.push({
+    this.addCheck({
       apply: (num) =>
         num > 0
           ? { success: true, result: num }
@@ -75,7 +74,7 @@ class ZodNumber implements ZodClass<number> {
   }
 
   negative() {
-    this._checks.push({
+    this.addCheck({
       apply: (num) =>
         num < 0
           ? { success: true, result: num }
@@ -88,7 +87,7 @@ class ZodNumber implements ZodClass<number> {
   }
 
   nonpositive() {
-    this._checks.push({
+    this.addCheck({
       apply: (num) =>
         num <= 0
           ? { success: true, result: num }
@@ -101,7 +100,7 @@ class ZodNumber implements ZodClass<number> {
   }
 
   nonnegative() {
-    this._checks.push({
+    this.addCheck({
       apply: (num) =>
         num >= 0
           ? { success: true, result: num }
@@ -114,7 +113,7 @@ class ZodNumber implements ZodClass<number> {
   }
 
   multiple(n: number) {
-    this._checks.push({
+    this.addCheck({
       apply: (num) =>
         num % n == 0
           ? { success: true, result: num }
@@ -124,23 +123,6 @@ class ZodNumber implements ZodClass<number> {
             },
     });
     return this;
-  }
-
-  parse(input: number) {
-    const result = this.safeParse(input);
-    if (result.success) return result.result;
-    throw new Error(result.errorMessage);
-  }
-
-  safeParse(input: number): CheckResult<number> {
-    let num = input;
-    for (let check of this._checks) {
-      const result = check.apply(num);
-      if (!result.success) return result;
-      else num = result.result;
-    }
-
-    return { success: true, result: num };
   }
 }
 

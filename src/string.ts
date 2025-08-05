@@ -1,20 +1,21 @@
-import type { CheckResult, ZodClass } from "./types";
+import { ZodBaseClass, type CheckResult } from "./types";
 
-interface StringCheck {
-  apply: (str: string) => CheckResult<string>;
-}
+class ZodString extends ZodBaseClass<string> {
+  constructor() {
+    super(
+      (input: unknown) => typeof input === "string",
+      "input must be a string"
+    );
+  }
 
-class ZodString implements ZodClass<string> {
-  _checks: StringCheck[] = [{ apply: this.baseCheck }];
-
-  baseCheck(input: string): CheckResult<string> {
+  _baseCheck(input: string): CheckResult<string> {
     return typeof input === "string"
       ? { success: true, result: input }
       : { success: false, errorMessage: "input must be a string" };
   }
 
   min(length: number) {
-    this._checks.push({
+    this.addCheck({
       apply: (str) =>
         str.length >= length
           ? { success: true, result: str }
@@ -27,7 +28,7 @@ class ZodString implements ZodClass<string> {
   }
 
   max(length: number) {
-    this._checks.push({
+    this.addCheck({
       apply: (str) =>
         str.length <= length
           ? { success: true, result: str }
@@ -40,7 +41,7 @@ class ZodString implements ZodClass<string> {
   }
 
   length(length: number) {
-    this._checks.push({
+    this.addCheck({
       apply: (str) =>
         str.length == length
           ? { success: true, result: str }
@@ -53,7 +54,7 @@ class ZodString implements ZodClass<string> {
   }
 
   regex(regex: RegExp) {
-    this._checks.push({
+    this.addCheck({
       apply: (str) =>
         regex.test(str)
           ? { success: true, result: str }
@@ -66,7 +67,7 @@ class ZodString implements ZodClass<string> {
   }
 
   startsWith(string: string) {
-    this._checks.push({
+    this.addCheck({
       apply: (str) =>
         str.startsWith(string)
           ? { success: true, result: str }
@@ -76,7 +77,7 @@ class ZodString implements ZodClass<string> {
   }
 
   endsWith(string: string) {
-    this._checks.push({
+    this.addCheck({
       apply: (str) =>
         str.endsWith(string)
           ? { success: true, result: str }
@@ -86,7 +87,7 @@ class ZodString implements ZodClass<string> {
   }
 
   includes(string: string) {
-    this._checks.push({
+    this.addCheck({
       apply: (str) =>
         str.includes(string)
           ? { success: true, result: str }
@@ -96,7 +97,7 @@ class ZodString implements ZodClass<string> {
   }
 
   uppercase() {
-    this._checks.push({
+    this.addCheck({
       apply: (str) =>
         str === str.toUpperCase()
           ? { success: true, result: str }
@@ -106,30 +107,13 @@ class ZodString implements ZodClass<string> {
   }
 
   lowercase() {
-    this._checks.push({
+    this.addCheck({
       apply: (str) =>
         str === str.toLowerCase()
           ? { success: true, result: str }
           : { success: false, errorMessage: "string must be lowercase" },
     });
     return this;
-  }
-
-  parse(input: string) {
-    const result = this.safeParse(input);
-    if (result.success) return result.result;
-    throw new Error(result.errorMessage);
-  }
-
-  safeParse(input: string): CheckResult<string> {
-    let str = input;
-    for (let check of this._checks) {
-      const result = check.apply(str);
-      if (!result.success) return result;
-      else str = result.result;
-    }
-
-    return { success: true, result: str };
   }
 }
 
