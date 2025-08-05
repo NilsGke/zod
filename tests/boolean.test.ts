@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { expectZodErrorMessage } from "./util";
-import z from "../src";
+import { z } from "../src";
 
 describe("z.boolean()", () => {
   test("not a boolean", () => {

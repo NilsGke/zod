@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import z from "../src";
 import { expectZodErrorMessage } from "./util";
+import { z } from "../src";
 
 describe("z.string()", () => {
   test("not a string", () => {

@@ -1,4 +1,5 @@
-import { ZodBaseClass, type CheckResult } from "./types";
+import { ZodBaseClass } from "./base";
+import { type CheckResult } from "./types";
 
 class ZodString extends ZodBaseClass<string> {
   constructor() {

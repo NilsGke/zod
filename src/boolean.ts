@@ -1,4 +1,4 @@
-import { ZodBaseClass, type Check } from "./types";
+import { ZodBaseClass } from "./base";
 
 class ZodBoolean extends ZodBaseClass<boolean> {
   constructor() {
