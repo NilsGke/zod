@@ -1,23 +1,36 @@
 import { ZodBaseClass } from "./base";
 
-type StringValues = { truthy: string[]; falsy: string[] };
+type Options = {
+  truthy?: string[];
+  falsy?: string[];
+  case?: "sensitive" | "insensitive";
+};
 
 export class ZodStringbool extends ZodBaseClass<string, boolean> {
-  truthy = new Set(["true", "1", "yes", "on", "y", "enabled"]);
-  falsy = new Set(["false", "0", "no", "off", "n", "disabled"]);
+  truthy: Set<string>;
+  falsy: Set<string>;
+  caseSensitive: boolean;
 
-  constructor(newValues?: StringValues) {
+  constructor(
+    options: Options = {
+      truthy: ["true", "1", "yes", "on", "y", "enabled"],
+      falsy: ["false", "0", "no", "off", "n", "disabled"],
+      case: "insensitive",
+    }
+  ) {
     super(
       (value) => typeof value === "string",
       "input must be a string",
       (value: string) => (this.truthy.has(value) ? true : false)
     );
-    if (newValues) {
-      this.truthy = new Set(newValues.truthy);
-      this.falsy = new Set(newValues.falsy);
-    }
+
+    this.truthy = new Set(options.truthy);
+    this.falsy = new Set(options.falsy);
+    this.caseSensitive = options.case === "sensitive";
+
     this.addCheck((input: string) => {
-      if (this.truthy.has(input) || this.falsy.has(input))
+      const str = this.caseSensitive ? input : input.toLowerCase();
+      if (this.truthy.has(str) || this.falsy.has(str))
         return { success: true, result: input };
       else
         return {
@@ -33,7 +46,7 @@ export class ZodStringbool extends ZodBaseClass<string, boolean> {
   }
 }
 
-const stringbool = (stringValues?: StringValues) =>
+const stringbool = (stringValues?: Options & { case?: "sensitive" }) =>
   new ZodStringbool(stringValues);
 
 export default stringbool;

@@ -39,5 +39,22 @@ describe("z.stringbool()", () => {
         /input must be one of.+/
       );
     });
+
+    test("case sensitive", () => {
+      expectZodErrorMessage(
+        z
+          .stringbool({
+            truthy: ["ja"],
+            case: "sensitive",
+          })
+          .safeParse("JA")
+      ).toMatch(/input must be one of:.+/);
+      expect(
+        z.stringbool({ truthy: ["ja"], case: "sensitive" }).parse("ja")
+      ).toBe(true);
+      expect(
+        z.stringbool({ truthy: ["ja"], case: "sensitive" }).parse("ja")
+      ).toBe(true);
+    });
   });
 });
