@@ -1,8 +1,7 @@
 import type { ZodBaseClass } from "./base";
 
-export type Check<T> = {
-  apply: (input: T) => CheckResult<T>;
-};
+export type Check<T> = (input: T) => CheckResult<T>;
+export type TransformerFun<T, K> = (input: T) => K;
 
 export interface SuccessfulResult<T> {
   success: true;

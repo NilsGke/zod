@@ -1,37 +1,52 @@
 import type { Check, CheckResult } from "./types";
 
-export class ZodBaseClass<T> {
-  private readonly checks: Check<T>[];
+export class ZodBaseClass<Input, Output = Input> {
+  private readonly checks: Check<Input>[];
+  private transformer?: (input: Input) => Output;
 
-  constructor(baseCheck: (val: unknown) => val is T, errorMessage: string) {
+  constructor(baseCheck: (val: unknown) => val is Input, errorMessage: string);
+  constructor(
+    baseCheck: (val: unknown) => val is Input,
+    errorMessage: string,
+    transformer: (input: Input) => Output
+  );
+
+  constructor(
+    baseCheck: (val: unknown) => val is Input,
+    errorMessage: string,
+    transformer?: typeof this.transformer
+  ) {
     this.checks = [
-      {
-        apply: (input: T) =>
-          baseCheck(input)
-            ? { success: true, result: input }
-            : { success: false, errorMessage },
-      },
+      (input: Input) =>
+        baseCheck(input)
+          ? { success: true, result: input }
+          : { success: false, errorMessage },
     ];
+
+    if (transformer) this.transformer = transformer;
   }
 
-  addCheck(check: Check<T>): void {
+  addCheck(check: Check<Input>): void {
     this.checks.push(check);
   }
 
-  parse(input: T) {
+  parse(input: Input) {
     const result = this.safeParse(input);
     if (result.success) return result.result;
     throw new Error(result.errorMessage);
   }
 
-  safeParse(input: T): CheckResult<T> {
-    let num = input;
+  safeParse(input: Input): CheckResult<Output> {
+    let value = input;
     for (let check of this.checks) {
-      const checkRes = check.apply(num);
+      const checkRes = check(value);
       if (!checkRes.success) return checkRes;
-      else num = checkRes.result;
+      else value = checkRes.result;
     }
 
-    return { success: true, result: num };
+    if (this.transformer)
+      return { success: true, result: this.transformer(value) };
+
+    return { success: true, result: value as any as Output }; // need `as any as Ouput` since we cannot check in the type if a transformer has been set
   }
 }

@@ -24,8 +24,8 @@ class ZodEnum<T extends readonly [...string[]]> extends ZodBaseClass<
 
     this.validStrings = new Set(validStrings);
 
-    this.addCheck({
-      apply: (input: string): CheckResult<string> =>
+    this.addCheck(
+      (input: string): CheckResult<string> =>
         this.validStrings.has(input)
           ? { success: true, result: input }
           : {
@@ -33,8 +33,8 @@ class ZodEnum<T extends readonly [...string[]]> extends ZodBaseClass<
               errorMessage: `string must be one of the following: ${validStrings
                 .map((s) => `"${s}"`)
                 .join(", ")}`,
-            },
-    });
+            }
+    );
   }
 
   exclude<const K extends readonly [...string[]]>(disallowedStrings: K) {
