@@ -1,4 +1,4 @@
-import { ZodBaseClass } from "./base";
+import { ZodBase } from "./base";
 import type { CheckResult } from "./types";
 
 type ExcludeFromArray<
@@ -11,9 +11,7 @@ type ExtractFromArray<
   K extends readonly [...string[]]
 > = Extract<T[number], K[number]>[];
 
-class ZodEnum<T extends readonly [...string[]]> extends ZodBaseClass<
-  T[number]
-> {
+class ZodEnum<T extends readonly [...string[]]> extends ZodBase<T[number]> {
   private validStrings: Set<string>;
 
   constructor(validStrings: T) {

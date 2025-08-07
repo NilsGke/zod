@@ -1,5 +1,5 @@
 import type { Infer as _Infer } from "./types";
-import type { ZodBaseClass } from "./base";
+import type { ZodBase } from "./base";
 import boolean from "./boolean";
 import number from "./number";
 import string from "./string";
@@ -9,5 +9,5 @@ import stringbool from "./stringbool";
 export const z = { string, number, boolean, enum: _enum, stringbool };
 
 export namespace z {
-  export type infer<T extends ZodBaseClass<any>> = _Infer<T>;
+  export type infer<T extends ZodBase<any>> = _Infer<T>;
 }

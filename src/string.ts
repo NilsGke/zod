@@ -1,7 +1,7 @@
-import { ZodBaseClass } from "./base";
+import { ZodBase } from "./base";
 import { type CheckResult } from "./types";
 
-class ZodString extends ZodBaseClass<string> {
+class ZodString extends ZodBase<string> {
   constructor() {
     super(
       (input: unknown) => typeof input === "string",

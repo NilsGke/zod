@@ -1,6 +1,6 @@
 import type { Check, CheckResult } from "./types";
 
-export class ZodBaseClass<Input, Output = Input> {
+export class ZodBase<Input, Output = Input> {
   private readonly checks: Check<Input>[];
   private transformer?: (input: Input) => Output;
 

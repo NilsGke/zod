@@ -1,4 +1,4 @@
-import { ZodBaseClass } from "./base";
+import { ZodBase } from "./base";
 
 type Options = {
   truthy?: string[];
@@ -6,7 +6,7 @@ type Options = {
   case?: "sensitive" | "insensitive";
 };
 
-export class ZodStringbool extends ZodBaseClass<string, boolean> {
+export class ZodStringbool extends ZodBase<string, boolean> {
   truthy: Set<string>;
   falsy: Set<string>;
   caseSensitive: boolean;
