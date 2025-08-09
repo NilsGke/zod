@@ -8,7 +8,7 @@ class ZodBoolean extends ZodBase<boolean> {
     );
   }
 
-  clone() {
+  protected clone() {
     return new ZodBoolean() as this;
   }
 }

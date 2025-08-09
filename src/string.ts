@@ -11,7 +11,7 @@ class ZodString extends ZodBase<string> {
     if (checks) this.checks.push(...checks);
   }
 
-  clone() {
+  protected clone() {
     return new ZodString(this.checks.slice()) as this;
   }
 

@@ -45,7 +45,7 @@ export class ZodStringbool extends ZodBase<string, boolean> {
     });
   }
 
-  clone() {
+  protected clone() {
     throw Error("clone should never be used on the ZodStringbool class");
     return this;
   }

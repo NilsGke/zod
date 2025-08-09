@@ -1,7 +1,7 @@
 import { ZodBase } from "./base";
 
 class ZodOptional<T, K extends ZodBase<T>> extends ZodBase<T | undefined> {
-  baseSchema: K;
+  private baseSchema: K;
 
   constructor(schema: K) {
     super();
@@ -17,7 +17,7 @@ class ZodOptional<T, K extends ZodBase<T>> extends ZodBase<T | undefined> {
     });
   }
 
-  clone() {
+  protected clone() {
     throw Error("clone should not be used on this method");
     return this;
   }
