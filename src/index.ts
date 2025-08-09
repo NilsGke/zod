@@ -7,6 +7,7 @@ import _enum from "./enum";
 import stringbool from "./stringbool";
 import optional from "./optional";
 import nullable from "./nullable";
+import nullish from "./nullish";
 
 export const z = {
   string,
@@ -16,6 +17,7 @@ export const z = {
   stringbool,
   optional,
   nullable,
+  nullish,
 };
 
 export namespace z {
