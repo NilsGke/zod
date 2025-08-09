@@ -4,6 +4,7 @@ export class ZodBase<Input, Output = Input> {
   private readonly checks: Check<Input>[];
   private transformer?: (input: Input) => Output;
 
+  constructor();
   constructor(baseCheck: (val: unknown) => val is Input, errorMessage: string);
   constructor(
     baseCheck: (val: unknown) => val is Input,
@@ -12,16 +13,18 @@ export class ZodBase<Input, Output = Input> {
   );
 
   constructor(
-    baseCheck: (val: unknown) => val is Input,
-    errorMessage: string,
+    baseCheck?: (val: unknown) => val is Input,
+    errorMessage?: string,
     transformer?: typeof this.transformer
   ) {
-    this.checks = [
-      (input: Input) =>
-        baseCheck(input)
-          ? { success: true, result: input }
-          : { success: false, errorMessage },
-    ];
+    if (baseCheck && errorMessage)
+      this.checks = [
+        (input: Input) =>
+          baseCheck(input)
+            ? { success: true, result: input }
+            : { success: false, errorMessage },
+      ];
+    else this.checks = [];
 
     if (transformer) this.transformer = transformer;
   }

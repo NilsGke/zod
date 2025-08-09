@@ -17,7 +17,7 @@ describe("z.stringbool()", () => {
     );
   });
 
-  test("custom values", () => {
+  describe("custom values", () => {
     const custom = z.stringbool({
       truthy: ["ja", "oui"],
       falsy: ["nein", "non"],
