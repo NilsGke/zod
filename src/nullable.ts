@@ -1,6 +1,6 @@
 import { ZodBase } from "./base";
 
-class ZodOptional<T, K extends ZodBase<T>> extends ZodBase<T | undefined> {
+class ZodNullable<T, K extends ZodBase<T>> extends ZodBase<T | null> {
   private baseSchema: K;
 
   constructor(schema: K) {
@@ -8,7 +8,7 @@ class ZodOptional<T, K extends ZodBase<T>> extends ZodBase<T | undefined> {
     this.baseSchema = schema;
 
     this.checks.push((input) => {
-      if (input === undefined)
+      if (input === null)
         return {
           success: true,
           result: input,
@@ -28,6 +28,6 @@ class ZodOptional<T, K extends ZodBase<T>> extends ZodBase<T | undefined> {
 }
 
 const optional = <S extends ZodBase<any>>(schema: S) =>
-  new ZodOptional<ReturnType<S["parse"]>, S>(schema);
+  new ZodNullable<ReturnType<S["parse"]>, S>(schema);
 
 export default optional;
