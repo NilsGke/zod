@@ -1,5 +1,5 @@
 import { ZodBase } from "./base";
-import type { CheckResult } from "./types";
+import type { Check, CheckResult } from "./types";
 
 type ExcludeFromArray<
   T extends readonly [...string[]],
@@ -14,7 +14,7 @@ type ExtractFromArray<
 class ZodEnum<T extends readonly [...string[]]> extends ZodBase<T[number]> {
   private validStrings: Set<string>;
 
-  constructor(validStrings: T) {
+  constructor(validStrings: T, checks?: Check<T[number]>[]) {
     super(
       (input): input is string => typeof input === "string",
       "input must be a string"
@@ -22,7 +22,7 @@ class ZodEnum<T extends readonly [...string[]]> extends ZodBase<T[number]> {
 
     this.validStrings = new Set(validStrings);
 
-    this.addCheck(
+    this.checks.push(
       (input: string): CheckResult<string> =>
         this.validStrings.has(input)
           ? { success: true, result: input }
@@ -33,6 +33,17 @@ class ZodEnum<T extends readonly [...string[]]> extends ZodBase<T[number]> {
                 .join(", ")}`,
             }
     );
+    if (checks) this.checks.push(...checks);
+  }
+
+  protected clone(): this {
+    throw Error("clone should never be used on ZodEnum");
+    const clone = new ZodEnum<T>(
+      [...this.validStrings] as const as T,
+      this.checks.slice()
+    );
+    clone.validStrings = new Set(this.validStrings);
+    return clone as this;
   }
 
   exclude<const K extends readonly [...string[]]>(disallowedStrings: K) {

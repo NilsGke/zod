@@ -7,7 +7,7 @@ class ZodOptional<T, K extends ZodBase<T>> extends ZodBase<T | undefined> {
     super();
     this.baseSchema = schema;
 
-    this.addCheck((input) => {
+    this.checks.push((input) => {
       if (input === undefined)
         return {
           success: true,
@@ -15,6 +15,15 @@ class ZodOptional<T, K extends ZodBase<T>> extends ZodBase<T | undefined> {
         };
       return schema.safeParse(input);
     });
+  }
+
+  clone() {
+    throw Error("clone should not be used on this method");
+    return this;
+  }
+
+  unwarp() {
+    return this.baseSchema;
   }
 }
 

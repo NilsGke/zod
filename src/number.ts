@@ -1,15 +1,21 @@
 import { ZodBase } from "./base";
+import type { Check } from "./types";
 
 class ZodNumber extends ZodBase<number> {
-  constructor() {
+  constructor(checks?: Check<number>[]) {
     super(
       (input: unknown) => typeof input === "number",
       "input must be a number"
     );
+    if (checks) this.checks.push(...checks); // copy array
+  }
+
+  protected clone(): this {
+    return new ZodNumber(this.checks) as this;
   }
 
   gt(max: number) {
-    this.addCheck((num) =>
+    return this.cloneAndAddCheck((num) =>
       num > max
         ? { success: true, result: num }
         : {
@@ -17,11 +23,10 @@ class ZodNumber extends ZodBase<number> {
             errorMessage: `number must be greater then ${max}`,
           }
     );
-    return this;
   }
 
   gte(max: number) {
-    this.addCheck((num) =>
+    return this.cloneAndAddCheck((num) =>
       num >= max
         ? { success: true, result: num }
         : {
@@ -29,11 +34,10 @@ class ZodNumber extends ZodBase<number> {
             errorMessage: `number must be greater then or equal to ${max}`,
           }
     );
-    return this;
   }
 
   lt(max: number) {
-    this.addCheck((num) =>
+    return this.cloneAndAddCheck((num) =>
       num < max
         ? { success: true, result: num }
         : {
@@ -41,11 +45,10 @@ class ZodNumber extends ZodBase<number> {
             errorMessage: `number must be less then ${max}`,
           }
     );
-    return this;
   }
 
   lte(max: number) {
-    this.addCheck((num) =>
+    return this.cloneAndAddCheck((num) =>
       num <= max
         ? { success: true, result: num }
         : {
@@ -53,11 +56,10 @@ class ZodNumber extends ZodBase<number> {
             errorMessage: `number must be less then or equal to ${max}`,
           }
     );
-    return this;
   }
 
   positive() {
-    this.addCheck((num) =>
+    return this.cloneAndAddCheck((num) =>
       num > 0
         ? { success: true, result: num }
         : {
@@ -65,11 +67,10 @@ class ZodNumber extends ZodBase<number> {
             errorMessage: `number must be positive`,
           }
     );
-    return this;
   }
 
   negative() {
-    this.addCheck((num) =>
+    return this.cloneAndAddCheck((num) =>
       num < 0
         ? { success: true, result: num }
         : {
@@ -77,11 +78,10 @@ class ZodNumber extends ZodBase<number> {
             errorMessage: `number must be negative`,
           }
     );
-    return this;
   }
 
   nonpositive() {
-    this.addCheck((num) =>
+    return this.cloneAndAddCheck((num) =>
       num <= 0
         ? { success: true, result: num }
         : {
@@ -89,11 +89,10 @@ class ZodNumber extends ZodBase<number> {
             errorMessage: `number cannot be positive`,
           }
     );
-    return this;
   }
 
   nonnegative() {
-    this.addCheck((num) =>
+    return this.cloneAndAddCheck((num) =>
       num >= 0
         ? { success: true, result: num }
         : {
@@ -101,11 +100,10 @@ class ZodNumber extends ZodBase<number> {
             errorMessage: `number cannot be negative`,
           }
     );
-    return this;
   }
 
   multiple(n: number) {
-    this.addCheck((num) =>
+    return this.cloneAndAddCheck((num) =>
       num % n == 0
         ? { success: true, result: num }
         : {
@@ -113,7 +111,6 @@ class ZodNumber extends ZodBase<number> {
             errorMessage: `number must be a multiple of ${n}`,
           }
     );
-    return this;
   }
 }
 

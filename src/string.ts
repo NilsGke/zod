@@ -1,22 +1,22 @@
 import { ZodBase } from "./base";
-import { type CheckResult } from "./types";
+import { type Check, type CheckResult } from "./types";
 
 class ZodString extends ZodBase<string> {
-  constructor() {
+  constructor(checks?: Check<string>[]) {
     super(
       (input: unknown) => typeof input === "string",
       "input must be a string"
     );
+
+    if (checks) this.checks.push(...checks);
   }
 
-  _baseCheck(input: string): CheckResult<string> {
-    return typeof input === "string"
-      ? { success: true, result: input }
-      : { success: false, errorMessage: "input must be a string" };
+  clone() {
+    return new ZodString(this.checks.slice()) as this;
   }
 
   min(length: number) {
-    this.addCheck((str) =>
+    return this.cloneAndAddCheck((str) =>
       str.length >= length
         ? { success: true, result: str }
         : {
@@ -24,11 +24,10 @@ class ZodString extends ZodBase<string> {
             errorMessage: `string must be at least ${length} characters long`,
           }
     );
-    return this;
   }
 
   max(length: number) {
-    this.addCheck((str) =>
+    return this.cloneAndAddCheck((str) =>
       str.length <= length
         ? { success: true, result: str }
         : {
@@ -36,11 +35,10 @@ class ZodString extends ZodBase<string> {
             errorMessage: `string can be max ${length} characters long`,
           }
     );
-    return this;
   }
 
   length(length: number) {
-    this.addCheck((str) =>
+    return this.cloneAndAddCheck((str) =>
       str.length == length
         ? { success: true, result: str }
         : {
@@ -48,11 +46,10 @@ class ZodString extends ZodBase<string> {
             errorMessage: `string must be exactly ${length} characters long`,
           }
     );
-    return this;
   }
 
   regex(regex: RegExp) {
-    this.addCheck((str) =>
+    return this.cloneAndAddCheck((str) =>
       regex.test(str)
         ? { success: true, result: str }
         : {
@@ -60,52 +57,46 @@ class ZodString extends ZodBase<string> {
             errorMessage: `string does not match regex: ${regex}`,
           }
     );
-    return this;
   }
 
   startsWith(string: string) {
-    this.addCheck((str) =>
+    return this.cloneAndAddCheck((str) =>
       str.startsWith(string)
         ? { success: true, result: str }
         : { success: false, errorMessage: `string must start with "${str}"` }
     );
-    return this;
   }
 
   endsWith(string: string) {
-    this.addCheck((str) =>
+    return this.cloneAndAddCheck((str) =>
       str.endsWith(string)
         ? { success: true, result: str }
         : { success: false, errorMessage: `string must end with "${str}"` }
     );
-    return this;
   }
 
   includes(string: string) {
-    this.addCheck((str) =>
+    return this.cloneAndAddCheck((str) =>
       str.includes(string)
         ? { success: true, result: str }
         : { success: false, errorMessage: `string must include "${str}"` }
     );
-    return this;
   }
 
   uppercase() {
-    this.addCheck((str) =>
+    return this.cloneAndAddCheck((str) =>
       str === str.toUpperCase()
         ? { success: true, result: str }
         : { success: false, errorMessage: "string must be uppercase" }
     );
-    return this;
   }
 
   lowercase() {
-    this.addCheck((str) =>
+    return this.cloneAndAddCheck((str) =>
       str === str.toLowerCase()
         ? { success: true, result: str }
         : { success: false, errorMessage: "string must be lowercase" }
     );
-    return this;
   }
 }
 

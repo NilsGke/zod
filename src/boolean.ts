@@ -7,6 +7,10 @@ class ZodBoolean extends ZodBase<boolean> {
       "input must be a boolean"
     );
   }
+
+  clone() {
+    return new ZodBoolean() as this;
+  }
 }
 
 const boolean = () => new ZodBoolean();

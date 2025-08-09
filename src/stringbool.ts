@@ -28,7 +28,7 @@ export class ZodStringbool extends ZodBase<string, boolean> {
     this.falsy = new Set(options.falsy);
     this.caseSensitive = options.case === "sensitive";
 
-    this.addCheck((input: string) => {
+    this.checks.push((input: string) => {
       const str = this.caseSensitive ? input : input.toLowerCase();
       if (this.truthy.has(str) || this.falsy.has(str))
         return { success: true, result: input };
@@ -43,6 +43,11 @@ export class ZodStringbool extends ZodBase<string, boolean> {
             .join(", ")}`,
         };
     });
+  }
+
+  clone() {
+    throw Error("clone should never be used on the ZodStringbool class");
+    return this;
   }
 }
 

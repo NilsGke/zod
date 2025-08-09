@@ -1,8 +1,9 @@
 import type { Check, CheckResult } from "./types";
 
-export class ZodBase<Input, Output = Input> {
-  private readonly checks: Check<Input>[];
-  private transformer?: (input: Input) => Output;
+export abstract class ZodBase<Input, Output = Input> {
+  protected readonly checks: Check<Input>[];
+  protected transformer?: (input: Input) => Output;
+  protected baseCheck?: Check<Input>;
 
   constructor();
   constructor(baseCheck: (val: unknown) => val is Input, errorMessage: string);
@@ -18,19 +19,21 @@ export class ZodBase<Input, Output = Input> {
     transformer?: typeof this.transformer
   ) {
     if (baseCheck && errorMessage)
-      this.checks = [
-        (input: Input) =>
-          baseCheck(input)
-            ? { success: true, result: input }
-            : { success: false, errorMessage },
-      ];
-    else this.checks = [];
+      this.baseCheck = (input: Input) =>
+        baseCheck(input)
+          ? { success: true, result: input }
+          : { success: false, errorMessage };
+
+    this.checks = [];
 
     if (transformer) this.transformer = transformer;
   }
 
-  addCheck(check: Check<Input>): void {
-    this.checks.push(check);
+  protected abstract clone(): this;
+  protected cloneAndAddCheck(check: Check<Input>): this {
+    const clone = this.clone();
+    clone.checks.push(check);
+    return clone;
   }
 
   parse(input: Input) {
@@ -41,7 +44,9 @@ export class ZodBase<Input, Output = Input> {
 
   safeParse(input: Input): CheckResult<Output> {
     let value = input;
-    for (let check of this.checks) {
+    for (let check of this.baseCheck
+      ? [this.baseCheck, ...this.checks]
+      : this.checks) {
       const checkRes = check(value);
       if (!checkRes.success) return checkRes;
       else value = checkRes.result;
