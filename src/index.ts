@@ -8,6 +8,9 @@ import stringbool from "./stringbool";
 import optional from "./optional";
 import nullable from "./nullable";
 import nullish from "./nullish";
+import unknown from "./unknown";
+import any from "./any";
+import never from "./never";
 
 export const z = {
   string,
@@ -18,6 +21,9 @@ export const z = {
   optional,
   nullable,
   nullish,
+  unknown,
+  any,
+  never,
 };
 
 export namespace z {
