@@ -8,6 +8,7 @@ import stringbool from "./stringbool";
 import unknown from "./unknown";
 import any from "./any";
 import never from "./never";
+import object from "./object";
 
 export const z = {
   string,
@@ -21,6 +22,7 @@ export const z = {
   unknown,
   any,
   never,
+  object,
 };
 
 export namespace z {
