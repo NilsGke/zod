@@ -6,28 +6,48 @@ type InferShape<S extends ObjectShape> = {
   [K in keyof S]: S[K] extends ZodBase<any, infer Output> ? Output : never;
 };
 
-class ZodObject<S extends ObjectShape> extends ZodBase<InferShape<S>> {
-  private shape: S;
+enum ZodObjectStrictness {
+  loose,
+  strip,
+  strict,
+}
 
-  constructor(shape: S) {
+class ZodObject<
+  S extends ObjectShape,
+  Strictness extends ZodObjectStrictness
+> extends ZodBase<InferShape<S>> {
+  readonly shape;
+  constructor(shape: S, strictness: Strictness) {
     super(
       (input): input is InferShape<S> =>
         typeof input === "object" && input !== null,
       "input must be a object"
     );
+
     this.shape = shape;
+
     this.checks.push((input) => {
       const output: Partial<InferShape<S>> = {};
 
+      // error on unexpected string
       const expectedKeys = Object.keys(shape);
-      const unexpectedKey = Object.keys(input).find(
+      const unexpectedKeys: (keyof InferShape<S>)[] = Object.keys(input).filter(
         (key) => !expectedKeys.includes(key)
       );
-      if (unexpectedKey)
+
+      if (
+        strictness === ZodObjectStrictness.strict &&
+        unexpectedKeys.length > 0
+      )
         return {
           success: false,
-          errorMessage: `unexpected key "${unexpectedKey}" in input`,
+          errorMessage: `unexpected keys ${unexpectedKeys
+            .map((k) => `"${String(k)}"`)
+            .join(", ")} in input`,
         };
+
+      if (strictness === ZodObjectStrictness.loose)
+        unexpectedKeys.forEach((key) => (output[key] = input[key]));
 
       for (const key in shape) {
         if (!(key in input))
@@ -63,5 +83,9 @@ class ZodObject<S extends ObjectShape> extends ZodBase<InferShape<S>> {
   }
 }
 
-const object = <S extends ObjectShape>(obj: S) => new ZodObject<S>(obj);
-export default object;
+export const object = <S extends ObjectShape>(obj: S) =>
+  new ZodObject(obj, ZodObjectStrictness.strip);
+export const looseObject = <S extends ObjectShape>(obj: S) =>
+  new ZodObject(obj, ZodObjectStrictness.loose);
+export const strictObject = <S extends ObjectShape>(obj: S) =>
+  new ZodObject(obj, ZodObjectStrictness.strict);
