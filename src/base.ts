@@ -36,6 +36,10 @@ export abstract class ZodBase<Input, Output = Input> {
     return clone;
   }
 
+  optional() {
+    return new ZodOptional(this);
+  }
+
   parse(input: Input) {
     const result = this.safeParse(input);
     if (result.success) return result.result;
@@ -58,3 +62,97 @@ export abstract class ZodBase<Input, Output = Input> {
     return { success: true, result: value as any as Output }; // need `as any as Ouput` since we cannot check in the type if a transformer has been set
   }
 }
+
+export class ZodOptional<T, K extends ZodBase<T>> extends ZodBase<
+  T | undefined
+> {
+  private baseSchema: K;
+
+  constructor(schema: K) {
+    super();
+    this.baseSchema = schema;
+
+    this.checks.push((input) => {
+      if (input === undefined)
+        return {
+          success: true,
+          result: input,
+        };
+      return schema.safeParse(input);
+    });
+  }
+
+  protected clone() {
+    throw Error("clone should not be used on this class");
+    return this;
+  }
+
+  unwarp() {
+    return this.baseSchema;
+  }
+}
+
+export const optional = <S extends ZodBase<any>>(schema: S) =>
+  new ZodOptional<ReturnType<S["parse"]>, S>(schema);
+
+class ZodNullable<T, K extends ZodBase<T>> extends ZodBase<T | null> {
+  private baseSchema: K;
+
+  constructor(schema: K) {
+    super();
+    this.baseSchema = schema;
+
+    this.checks.push((input) => {
+      if (input === null)
+        return {
+          success: true,
+          result: input,
+        };
+      return schema.safeParse(input);
+    });
+  }
+
+  protected clone() {
+    throw Error("clone should not be used on this class");
+    return this;
+  }
+
+  unwarp() {
+    return this.baseSchema;
+  }
+}
+
+export const nullable = <S extends ZodBase<any>>(schema: S) =>
+  new ZodNullable<ReturnType<S["parse"]>, S>(schema);
+
+class ZodNullish<T, K extends ZodBase<T>> extends ZodBase<
+  T | null | undefined
+> {
+  private baseSchema: K;
+
+  constructor(schema: K) {
+    super();
+    this.baseSchema = schema;
+
+    this.checks.push((input) => {
+      if (input === null || input === undefined)
+        return {
+          success: true,
+          result: input,
+        };
+      return schema.safeParse(input);
+    });
+  }
+
+  protected clone() {
+    throw Error("clone should not be used on this class");
+    return this;
+  }
+
+  unwarp() {
+    return this.baseSchema;
+  }
+}
+
+export const nullish = <S extends ZodBase<any>>(schema: S) =>
+  new ZodNullish<ReturnType<S["parse"]>, S>(schema);

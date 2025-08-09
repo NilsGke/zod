@@ -1,13 +1,10 @@
 import type { Infer as _Infer } from "./types";
-import type { ZodBase } from "./base";
+import { type ZodBase, optional, nullable, nullish } from "./base";
 import boolean from "./boolean";
 import number from "./number";
 import string from "./string";
 import _enum from "./enum";
 import stringbool from "./stringbool";
-import optional from "./optional";
-import nullable from "./nullable";
-import nullish from "./nullish";
 import unknown from "./unknown";
 import any from "./any";
 import never from "./never";
