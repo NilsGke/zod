@@ -1,6 +1,6 @@
 import { ZodBase } from "./base";
 
-class ZodNever extends ZodBase<never> {
+export class ZodNever extends ZodBase<never> {
   constructor() {
     super();
     this.checks.push(() => ({
@@ -9,7 +9,7 @@ class ZodNever extends ZodBase<never> {
     }));
   }
 
-  protected clone() {
+  clone() {
     throw Error("clone should not be used on this class");
     return this;
   }

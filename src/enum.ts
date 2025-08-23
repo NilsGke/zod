@@ -15,10 +15,10 @@ class ZodEnum<T extends readonly [...string[]]> extends ZodBase<T[number]> {
   private validStrings: Set<string>;
 
   constructor(validStrings: T, checks?: Check<T[number]>[]) {
-    super(
-      (input): input is string => typeof input === "string",
-      "input must be a string"
-    );
+    super({
+      typeCheck: (input): input is string => typeof input === "string",
+      typeErrorMessage: "input must be a string",
+    });
 
     this.validStrings = new Set(validStrings);
 
@@ -36,7 +36,7 @@ class ZodEnum<T extends readonly [...string[]]> extends ZodBase<T[number]> {
     if (checks) this.checks.push(...checks);
   }
 
-  protected clone(): this {
+  clone(): this {
     throw Error("clone should never be used on ZodEnum");
     const clone = new ZodEnum<T>(
       [...this.validStrings] as const as T,

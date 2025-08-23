@@ -1,35 +1,35 @@
 import type { Check, CheckResult } from "./types";
 
+type Transformer<Input, Output> = (input: Input) => Output;
+
 export abstract class ZodBase<Input, Output = Input> {
   protected readonly checks: Check<Input>[];
-  protected transformer?: (input: Input) => Output;
-  protected baseCheck?: Check<Input>;
+  protected transformer?: Transformer<Input, Output>;
+  protected typeCheck?: Check<Input>;
+  protected baseChecks: Check<Input>[];
 
-  constructor();
-  constructor(baseCheck: (val: unknown) => val is Input, errorMessage: string);
-  constructor(
-    baseCheck: (val: unknown) => val is Input,
-    errorMessage: string,
-    transformer: (input: Input) => Output
-  );
-
-  constructor(
-    baseCheck?: (val: unknown) => val is Input,
-    errorMessage?: string,
-    transformer?: typeof this.transformer
-  ) {
-    if (baseCheck && errorMessage)
-      this.baseCheck = (input: Input) =>
-        baseCheck(input)
+  constructor(options?: {
+    typeCheck: (val: unknown) => val is Input;
+    typeErrorMessage?: string;
+    baseChecks?: Check<Input>[];
+    transformer?: Transformer<Input, Output>;
+  }) {
+    const errMsg = options?.typeErrorMessage;
+    if (options?.typeCheck && errMsg)
+      this.typeCheck = (input: Input) =>
+        options.typeCheck &&
+        options?.typeErrorMessage &&
+        options.typeCheck(input)
           ? { success: true, result: input }
-          : { success: false, errorMessage };
+          : { success: false, errorMessage: errMsg };
 
     this.checks = [];
+    this.baseChecks = options?.baseChecks || [];
 
-    if (transformer) this.transformer = transformer;
+    if (options?.transformer) this.transformer = options.transformer;
   }
 
-  protected abstract clone(): this;
+  abstract clone(): this;
   protected cloneAndAddCheck(check: Check<Input>): this {
     const clone = this.clone();
     clone.checks.push(check);
@@ -48,9 +48,14 @@ export abstract class ZodBase<Input, Output = Input> {
 
   safeParse(input: Input): CheckResult<Output> {
     let value = input;
-    for (let check of this.baseCheck
-      ? [this.baseCheck, ...this.checks]
-      : this.checks) {
+
+    const checks = [
+      ...(this.typeCheck ? [this.typeCheck] : []), // cannot just add typeCheck because we otherwise we need to filter out undefined from array
+      ...this.baseChecks,
+      ...this.checks,
+    ];
+
+    for (let check of checks) {
       const checkRes = check(value);
       if (!checkRes.success) return checkRes;
       else value = checkRes.result;
@@ -72,7 +77,7 @@ export class ZodOptional<T, K extends ZodBase<T>> extends ZodBase<
     super();
     this.baseSchema = schema;
 
-    this.checks.push((input) => {
+    this.baseChecks.push((input) => {
       if (input === undefined)
         return {
           success: true,
@@ -82,7 +87,7 @@ export class ZodOptional<T, K extends ZodBase<T>> extends ZodBase<
     });
   }
 
-  protected clone() {
+  clone() {
     throw Error("clone should not be used on this class");
     return this;
   }
@@ -112,7 +117,7 @@ class ZodNullable<T, K extends ZodBase<T>> extends ZodBase<T | null> {
     });
   }
 
-  protected clone() {
+  clone() {
     throw Error("clone should not be used on this class");
     return this;
   }
@@ -144,7 +149,7 @@ class ZodNullish<T, K extends ZodBase<T>> extends ZodBase<
     });
   }
 
-  protected clone() {
+  clone() {
     throw Error("clone should not be used on this class");
     return this;
   }

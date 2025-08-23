@@ -18,11 +18,11 @@ export class ZodStringbool extends ZodBase<string, boolean> {
       case: "insensitive",
     }
   ) {
-    super(
-      (value) => typeof value === "string",
-      "input must be a string",
-      (value: string) => (this.truthy.has(value) ? true : false)
-    );
+    super({
+      typeCheck: (value) => typeof value === "string",
+      typeErrorMessage: "input must be a string",
+      transformer: (value: string) => (this.truthy.has(value) ? true : false),
+    });
 
     this.truthy = new Set(options.truthy);
     this.falsy = new Set(options.falsy);
@@ -45,7 +45,7 @@ export class ZodStringbool extends ZodBase<string, boolean> {
     });
   }
 
-  protected clone() {
+  clone() {
     throw Error("clone should never be used on the ZodStringbool class");
     return this;
   }

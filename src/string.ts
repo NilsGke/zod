@@ -3,15 +3,15 @@ import { type Check, type CheckResult } from "./types";
 
 class ZodString extends ZodBase<string> {
   constructor(checks?: Check<string>[]) {
-    super(
-      (input: unknown) => typeof input === "string",
-      "input must be a string"
-    );
+    super({
+      typeCheck: (input: unknown) => typeof input === "string",
+      typeErrorMessage: "input must be a string",
+    });
 
     if (checks) this.checks.push(...checks);
   }
 
-  protected clone() {
+  clone() {
     return new ZodString(this.checks.slice()) as this;
   }
 

@@ -82,3 +82,38 @@ describe("z.strictObject()", () => {
     ).toMatch('unexpected keys "bye" in input');
   });
 });
+
+describe("z.object().catchall()", () => {
+  test("lets keys through and succeeds", () => {
+    expect(
+      z
+        .object({
+          hello: z.string(),
+        })
+        .catchall(z.number())
+        .parse({
+          hello: "world",
+          test: 69,
+        } as any)
+    ).toMatchObject({
+      hello: "world",
+      test: 69,
+    });
+  });
+
+  test("lets keys through but throws on error", () => {
+    expectZodErrorMessage(
+      z
+        .object({
+          hello: z.string(),
+        })
+        .catchall(z.number())
+        .safeParse({
+          hello: "world",
+          test: true,
+        } as any)
+    ).toMatch(
+      /error in object catchall for key \"test\": \n\tinput must be a number/
+    );
+  });
+});

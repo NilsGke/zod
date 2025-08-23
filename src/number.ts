@@ -3,14 +3,14 @@ import type { Check } from "./types";
 
 class ZodNumber extends ZodBase<number> {
   constructor(checks?: Check<number>[]) {
-    super(
-      (input: unknown) => typeof input === "number",
-      "input must be a number"
-    );
+    super({
+      typeCheck: (input: unknown) => typeof input === "number",
+      typeErrorMessage: "input must be a number",
+    });
     if (checks) this.checks.push(...checks); // copy array
   }
 
-  protected clone(): this {
+  clone(): this {
     return new ZodNumber(this.checks) as this;
   }
 

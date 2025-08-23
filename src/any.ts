@@ -1,7 +1,7 @@
 import { ZodBase } from "./base";
 
 class ZodAny extends ZodBase<any> {
-  protected clone() {
+  clone() {
     throw Error("clone should not be used on this class");
     return this;
   }
