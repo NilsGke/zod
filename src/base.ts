@@ -1,27 +1,28 @@
 import type { Check, CheckResult } from "./types";
 
-type Transformer<Input, Output> = (input: Input) => Output;
+export type Transformer<Input, Output> = (input: Input) => Output;
 
-export abstract class ZodBase<Input, Output = Input> {
+export abstract class ZodBase<Input, Output = Input, PrimitiveInput = Input> {
   protected readonly checks: Check<Input>[];
   protected transformer?: Transformer<Input, Output>;
   protected typeCheck?: Check<Input>;
   protected baseChecks: Check<Input>[];
 
   constructor(options?: {
-    typeCheck: (val: unknown) => val is Input;
-    typeErrorMessage?: string;
+    typeCheck: (val: unknown) => val is PrimitiveInput;
+    typeErrorMessage: string | ((input: unknown) => string);
     baseChecks?: Check<Input>[];
     transformer?: Transformer<Input, Output>;
   }) {
-    const errMsg = options?.typeErrorMessage;
+    const errMsg =
+      typeof options?.typeErrorMessage === "string"
+        ? () => options?.typeErrorMessage as string
+        : options?.typeErrorMessage;
     if (options?.typeCheck && errMsg)
       this.typeCheck = (input: Input) =>
-        options.typeCheck &&
-        options?.typeErrorMessage &&
-        options.typeCheck(input)
+        options.typeCheck && errMsg !== undefined && options.typeCheck(input)
           ? { success: true, result: input }
-          : { success: false, errorMessage: errMsg };
+          : { success: false, errorMessage: errMsg(input) };
 
     this.checks = [];
     this.baseChecks = options?.baseChecks || [];

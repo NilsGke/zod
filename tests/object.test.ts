@@ -7,6 +7,12 @@ describe("z.object()", () => {
     expect(z.object({}).parse({})).toMatchObject({});
   });
 
+  test("not a object", () => {
+    expectZodErrorMessage(z.object({}).safeParse(161 as any)).toMatch(
+      "input must be of type object, received: number"
+    );
+  });
+
   test("property", () => {
     expect(
       z
@@ -41,9 +47,7 @@ describe("z.object()", () => {
 
   test("strips unexpected property", () => {
     expect(
-      z
-        .object({ hello: z.string() })
-        .parse({ hello: "world", bye: "world" } as any)
+      z.object({ hello: z.string() }).parse({ hello: "world", bye: "world" })
     ).toMatchObject({
       hello: "world",
     });
@@ -60,7 +64,23 @@ describe("z.looseObject()", () => {
         .parse({
           hello: "world",
           bye: "world",
-        } as any)
+        })
+    ).toMatchObject({
+      hello: "world",
+      bye: "world",
+    });
+  });
+  test("z.object().loose() also lets unexpected properties through", () => {
+    expect(
+      z
+        .object({
+          hello: z.string(),
+        })
+        .loose()
+        .parse({
+          hello: "world",
+          bye: "world",
+        })
     ).toMatchObject({
       hello: "world",
       bye: "world",
@@ -79,7 +99,20 @@ describe("z.strictObject()", () => {
           hello: "world",
           bye: "world",
         } as any)
-    ).toMatch('unexpected keys "bye" in input');
+    ).toMatch('unexpected key "bye" in input');
+  });
+  test("z.object().strict() also throws on unexpected property", () => {
+    expectZodErrorMessage(
+      z
+        .object({
+          hello: z.string(),
+        })
+        .strict()
+        .safeParse({
+          hello: "world",
+          bye: "world",
+        } as any)
+    ).toMatch('unexpected key "bye" in input');
   });
 });
 
@@ -94,7 +127,7 @@ describe("z.object().catchall()", () => {
         .parse({
           hello: "world",
           test: 69,
-        } as any)
+        })
     ).toMatchObject({
       hello: "world",
       test: 69,
@@ -111,9 +144,9 @@ describe("z.object().catchall()", () => {
         .safeParse({
           hello: "world",
           test: true,
-        } as any)
+        })
     ).toMatch(
-      /error in object catchall for key \"test\": \n\tinput must be a number/
+      /error in catchall schema for key: "test":\n\tinput must be a number/
     );
   });
 });

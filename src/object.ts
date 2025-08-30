@@ -1,156 +1,242 @@
-import { ZodBase } from "./base";
-import { ZodNever } from "./never";
-import type { Infer } from "./types";
+import { ZodBase, type Transformer } from "./base";
+import number from "./number";
+import string from "./string";
+import type { Check, Infer } from "./types";
 
 type ObjectShape = Record<string, ZodBase<any, any>>;
 
+/** infers the raw type constructed from key - zodSchema pairs */
 type InferShape<S extends ObjectShape> = {
   [K in keyof S]: S[K] extends ZodBase<any, infer Output> ? Output : never;
 };
 
-enum ZodObjectStrictness {
-  loose,
-  strip,
-  strict,
-  catchall,
-}
-
-class ZodObject<
+/**
+ * this base class builds a base for ZodObject types.
+ * It checks if every key specified in shape is included in the input
+ * It provides the possibility to pass a check for stricter objects and a transformer to remove keys
+ */
+abstract class ZodBaseObject<
   S extends ObjectShape,
-  Strictness extends ZodObjectStrictness,
-  Catchall extends ZodBase<any, any> | ZodNever = ZodNever
-> extends ZodBase<
-  InferShape<S>,
-  InferShape<S> &
-    (Catchall extends ZodBase<any, any> // if we have catchall, output has key value where value is returntype of the catchall schema
-      ? { [x: string]: Infer<Catchall> }
-      : {})
-> {
-  readonly shape;
-  private strictness: Strictness;
-  private catchallSchema: Catchall = new ZodNever() as Catchall;
+  InputShape extends Record<keyof S, any> = InferShape<S>,
+  OutputShape extends Record<keyof S, any> = InferShape<S>
+> extends ZodBase<InputShape, OutputShape, object> {
+  shape: S;
 
-  constructor(shape: S, strictness: Strictness) {
+  constructor(
+    shape: S,
+    baseCheck?: Check<InputShape>,
+    transformer?: Transformer<InputShape, OutputShape>
+  ) {
     super({
-      typeCheck: (input): input is InferShape<S> =>
-        typeof input === "object" && input !== null,
-      typeErrorMessage: "input must be a object",
+      typeCheck: (input): input is object => typeof input === "object",
+      typeErrorMessage: (input) =>
+        `input must be of type object, received: ${typeof input}`,
+      transformer,
       baseChecks: [
+        // check for missing keys
         (input) => {
-          const output: Partial<InferShape<S>> = {};
-
-          // error on unexpected string
-          const expectedKeys = Object.keys(shape);
-          const unexpectedKeys: (keyof typeof input)[] = Object.keys(
-            input
-          ).filter((key) => !expectedKeys.includes(key));
-
-          if (
-            strictness === ZodObjectStrictness.strict &&
-            unexpectedKeys.length > 0
-          )
-            return {
-              success: false,
-              errorMessage: `unexpected keys ${unexpectedKeys
-                .map((k) => `"${String(k)}"`)
-                .join(", ")} in input`,
-            };
-
-          if (
-            strictness === ZodObjectStrictness.catchall &&
-            !(this.catchallSchema instanceof ZodNever)
-          )
-            for (const key of unexpectedKeys) {
-              const res = this.catchallSchema.safeParse(input[key]);
-              if (!res.success)
-                return {
-                  success: false,
-                  errorMessage: `error in object catchall for key "${String(
-                    key
-                  )}": \n${res.errorMessage
-                    .split("\n")
-                    .map((line) => "\t" + line)
-                    .join("\n")}`,
-                };
-              output[key] = input[key];
-            }
-          else if (strictness === ZodObjectStrictness.loose)
-            for (const key of unexpectedKeys) output[key] = input[key];
-
-          for (const key in shape) {
+          for (const key in shape)
             if (!(key in input))
               return {
                 success: false,
                 errorMessage: `input is missing key: "${key}"`,
               };
+
+          return {
+            success: true,
+            result: input,
+          };
+        },
+        (input) => {
+          for (const key in shape) {
             const schema = shape[key]!;
-            const value = input[key]!;
-            const res = schema.safeParse(value);
-            if (!res.success)
+            const value = input[key];
+            const testResult = schema.safeParse(value);
+
+            if (!testResult.success)
               return {
                 success: false,
                 errorMessage:
                   `value of key "${key}" resulted in an error:\n` +
-                  res.errorMessage
+                  testResult.errorMessage
                     .split("\n")
-                    .map((line) => "\t" + line)
+                    .map((s) => "\t" + s)
                     .join("\n"),
               };
-            output[key] = res.result;
           }
-
-          return {
-            success: true,
-            result: output as InferShape<S>,
-          };
+          return { success: true, result: input };
         },
+        ...(baseCheck ? [baseCheck] : []),
       ],
     });
-
     this.shape = shape;
-    this.strictness = strictness;
   }
 
-  clone() {
-    const clonedShape = Object.fromEntries(
-      Object.entries(this.shape).map(([key, schema]) => [key, schema.clone()])
-    ) as S;
-
-    const clone = new ZodObject(clonedShape, this.strictness) as ZodObject<
-      S,
-      Strictness,
-      Catchall
-    >;
-
-    clone.catchallSchema =
-      this.catchallSchema instanceof ZodNever
-        ? (this.catchallSchema as Catchall)
-        : (this.catchallSchema.clone() as Catchall);
-
-    clone.checks.push(...this.checks.slice());
-
-    return clone as this;
+  loose() {
+    return looseObject(this.shape);
   }
 
-  catchall<K extends ZodBase<any, any>>(schema: K) {
-    const clonedShape = Object.fromEntries(
-      Object.entries(this.shape).map(([key, schema]) => [key, schema.clone()])
-    ) as S;
+  strict() {
+    return strictObject(this.shape);
+  }
 
-    const clone = new ZodObject<S, ZodObjectStrictness.catchall, K>(
-      clonedShape,
-      ZodObjectStrictness.catchall
-    );
+  catchall<C extends ZodBase<any, any>>(catchallSchema: C) {
+    return catchallObject<S, C>(this.shape, catchallSchema);
+  }
 
-    clone.catchallSchema = schema;
-    clone.checks.push(...this.checks.slice());
-    return clone;
+  clone(): this {
+    throw Error("Method should never be called");
   }
 }
 
-export const object = <S extends ObjectShape>(obj: S) =>
-  new ZodObject(obj, ZodObjectStrictness.strip);
-export const looseObject = <S extends ObjectShape>(obj: S) =>
-  new ZodObject(obj, ZodObjectStrictness.loose);
-export const strictObject = <S extends ObjectShape>(obj: S) =>
-  new ZodObject(obj, ZodObjectStrictness.strict);
+/**
+ * Default object shape.
+ * In parse you cann pass unknown keys that will get stipped out.
+ */
+class ZodObject<
+  Shape extends ObjectShape,
+  Input extends Shape & { [x: string]: any } = Shape & { [x: string]: any }
+> extends ZodBaseObject<Shape, InferShape<Input>, InferShape<Shape>> {
+  constructor(shape: Shape) {
+    super(
+      shape,
+      undefined,
+      // transformer to remove unexpected keys
+      (input) =>
+        (Object.keys(input) as (keyof Shape)[])
+          .filter((key) => key in shape)
+          .reduce((obj, key) => {
+            obj[key] = input[key];
+            return obj;
+          }, {} as Partial<InferShape<Shape>>) as InferShape<Shape>
+    );
+  }
+}
+
+/**
+ * Loser Object shape.
+ * Lets unknown keys through to the output.
+ */
+class ZodLooseObject<
+  Shape extends ObjectShape,
+  LooseShape extends Shape & { [x: string]: any } = Shape & { [x: string]: any }
+> extends ZodBaseObject<Shape, InferShape<LooseShape>, InferShape<LooseShape>> {
+  constructor(shape: Shape) {
+    super(shape, undefined);
+  }
+}
+
+/**
+ * Stricter Object shape.
+ * Throws on unknown keys.
+ */
+class ZodStrictObject<Shape extends ObjectShape> extends ZodBaseObject<
+  Shape,
+  InferShape<Shape>,
+  InferShape<Shape>
+> {
+  constructor(shape: Shape) {
+    super(shape, (input) => {
+      for (const key in input) {
+        if (!(key in shape))
+          return {
+            success: false,
+            errorMessage: `unexpected key "${key}" in input`,
+          };
+      }
+      return {
+        success: true,
+        result: input,
+      };
+    });
+  }
+}
+
+/** combines the kv of the shape object with the correct types for any other keys */
+type InferCatchedShape<S extends ObjectShape, C extends ZodBase<any, any>> = {
+  [K in keyof S | string]: K extends keyof S ? InferShape<S>[K] : Infer<C>;
+};
+
+/**
+ * Catchall Object shape.
+ * Can have a additional catchall schema that is applied to any unexpected keys
+ */
+class ZodCatchallObject<
+  Shape extends ObjectShape,
+  CatchallSchema extends ZodBase<any, any>
+> extends ZodBaseObject<
+  Shape,
+  InferCatchedShape<Shape, CatchallSchema>,
+  InferCatchedShape<Shape, CatchallSchema>
+> {
+  constructor(shape: Shape, catchall: CatchallSchema) {
+    super(
+      shape,
+      (input) => {
+        for (const key in input) {
+          if (!(key in shape)) {
+            const catchallResult = catchall.safeParse(input[key]);
+            if (!catchallResult.success)
+              return {
+                success: false,
+                errorMessage:
+                  `error in catchall schema for key: "${key}":\n` +
+                  catchallResult.errorMessage
+                    .split("\n")
+                    .map((s) => "\t" + s)
+                    .join("\n"),
+              };
+          }
+        }
+        return { success: true, result: input };
+      },
+      // transformer to remove unexpected keys
+      (input) =>
+        (Object.keys(input) as (keyof Shape)[]).reduce((obj, key) => {
+          if (key in shape) obj[key] = input[key];
+          else {
+            const res = catchall.safeParse(input[key]);
+            if (!res.success)
+              throw Error(
+                "baseCheck did not catch the following catchall error: " +
+                  res.errorMessage
+                    .split("\n")
+                    .map((s) => "\t" + s)
+                    .join("\n")
+              );
+            obj[key] = res.result;
+          }
+          return obj;
+        }, {} as Partial<InferCatchedShape<Shape, CatchallSchema>>) as InferCatchedShape<
+          Shape,
+          CatchallSchema
+        >
+    );
+  }
+}
+
+export const object = <S extends ObjectShape>(shape: S) =>
+  new ZodObject<S>(shape);
+
+export const looseObject = <S extends ObjectShape>(shape: S) =>
+  new ZodLooseObject<S>(shape);
+
+export const strictObject = <S extends ObjectShape>(shape: S) =>
+  new ZodStrictObject<S>(shape);
+
+export const catchallObject = <
+  S extends ObjectShape,
+  C extends ZodBase<any, any>
+>(
+  shape: S,
+  catchall: C
+) => new ZodCatchallObject<S, C>(shape, catchall);
+
+const n = catchallObject(
+  {
+    k: string(),
+  },
+  number()
+).parse({
+  k: "hi",
+});
