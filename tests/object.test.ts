@@ -134,7 +134,23 @@ describe("z.object().catchall()", () => {
     });
   });
 
-  test("lets keys through but throws on error", () => {
+  test("error in base object", () => {
+    expectZodErrorMessage(
+      z
+        .object({
+          hello: z.string(),
+        })
+        .catchall(z.number())
+        .safeParse({
+          hello: true,
+          test: 69,
+        } as any)
+    ).toMatch(
+      'value of key "hello" resulted in an error:\n\tinput must be a string'
+    );
+  });
+
+  test("throws on error on incorrect catch", () => {
     expectZodErrorMessage(
       z
         .object({

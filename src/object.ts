@@ -152,9 +152,11 @@ class ZodStrictObject<Shape extends ObjectShape> extends ZodBaseObject<
   }
 }
 
-/** combines the kv of the shape object with the correct types for any other keys */
-type InferCatchedShape<S extends ObjectShape, C extends ZodBase<any, any>> = {
-  [K in keyof S | string]: K extends keyof S ? InferShape<S>[K] : Infer<C>;
+/** combines the kv of the shape object with the any for any other keys. Using the shape does not work due to typescripts limitations */
+type InferCatchedShape<S extends ObjectShape> = {
+  [K in keyof S]: Infer<S[K]>;
+} & {
+  [key: string]: any;
 };
 
 /**
@@ -166,8 +168,8 @@ class ZodCatchallObject<
   CatchallSchema extends ZodBase<any, any>
 > extends ZodBaseObject<
   Shape,
-  InferCatchedShape<Shape, CatchallSchema>,
-  InferCatchedShape<Shape, CatchallSchema>
+  InferCatchedShape<Shape>,
+  InferShape<Shape> & { [key: string]: Infer<CatchallSchema> | undefined }
 > {
   constructor(shape: Shape, catchall: CatchallSchema) {
     super(
@@ -207,10 +209,7 @@ class ZodCatchallObject<
             obj[key] = res.result;
           }
           return obj;
-        }, {} as Partial<InferCatchedShape<Shape, CatchallSchema>>) as InferCatchedShape<
-          Shape,
-          CatchallSchema
-        >
+        }, {} as Partial<InferCatchedShape<Shape>>) as InferCatchedShape<Shape>
     );
   }
 }
@@ -231,12 +230,3 @@ export const catchallObject = <
   shape: S,
   catchall: C
 ) => new ZodCatchallObject<S, C>(shape, catchall);
-
-const n = catchallObject(
-  {
-    k: string(),
-  },
-  number()
-).parse({
-  k: "hi",
-});
