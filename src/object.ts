@@ -89,6 +89,10 @@ abstract class ZodBaseObject<
     return _enum<Keys>(keys);
   }
 
+  abstract extend<K extends ObjectShape>(
+    shape: K
+  ): ZodBaseObject<S & K, any, any>;
+
   clone(): this {
     throw Error("Method should never be called");
   }
@@ -116,6 +120,11 @@ class ZodObject<
           }, {} as Partial<InferShape<Shape>>) as InferShape<Shape>
     );
   }
+
+  extend<K extends ObjectShape>(shape: K): ZodObject<Shape & K> {
+    const mergedShape = { ...this.shape, ...shape };
+    return new ZodObject(mergedShape);
+  }
 }
 
 /**
@@ -128,6 +137,11 @@ class ZodLooseObject<
 > extends ZodBaseObject<Shape, InferShape<LooseShape>, InferShape<LooseShape>> {
   constructor(shape: Shape) {
     super(shape, undefined);
+  }
+
+  extend<K extends ObjectShape>(shape: K): ZodLooseObject<Shape & K> {
+    const mergedShape = { ...this.shape, ...shape };
+    return new ZodLooseObject(mergedShape);
   }
 }
 
@@ -155,6 +169,11 @@ class ZodStrictObject<Shape extends ObjectShape> extends ZodBaseObject<
       };
     });
   }
+
+  extend<K extends ObjectShape>(shape: K): ZodStrictObject<Shape & K> {
+    const mergedShape = { ...this.shape, ...shape };
+    return new ZodStrictObject(mergedShape);
+  }
 }
 
 /** combines the kv of the shape object with the any for any other keys. Using the shape does not work due to typescripts limitations */
@@ -176,6 +195,8 @@ class ZodCatchallObject<
   InferCatchedShape<Shape>,
   InferShape<Shape> & { [key: string]: Infer<CatchallSchema> | undefined }
 > {
+  catchallSchema: CatchallSchema;
+
   constructor(shape: Shape, catchall: CatchallSchema) {
     super(
       shape,
@@ -216,6 +237,14 @@ class ZodCatchallObject<
           return obj;
         }, {} as Partial<InferCatchedShape<Shape>>) as InferCatchedShape<Shape>
     );
+    this.catchallSchema = catchall;
+  }
+
+  extend<K extends ObjectShape>(
+    shape: K
+  ): ZodCatchallObject<Shape & K, CatchallSchema> {
+    const mergedShape = { ...this.shape, ...shape };
+    return new ZodCatchallObject(mergedShape, this.catchallSchema);
   }
 }
 

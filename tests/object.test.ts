@@ -4,7 +4,7 @@ import { expectZodErrorMessage } from "./util";
 
 describe("z.object()", () => {
   test("empty object", () => {
-    expect(z.object({}).parse({})).toMatchObject({});
+    expect(z.object({}).parse({})).toEqual({});
   });
 
   test("not a object", () => {
@@ -20,7 +20,7 @@ describe("z.object()", () => {
           hello: z.string(),
         })
         .parse({ hello: "world" })
-    ).toMatchObject({
+    ).toEqual({
       hello: "world",
     });
   });
@@ -48,7 +48,7 @@ describe("z.object()", () => {
   test("strips unexpected property", () => {
     expect(
       z.object({ hello: z.string() }).parse({ hello: "world", bye: "world" })
-    ).toMatchObject({
+    ).toEqual({
       hello: "world",
     });
   });
@@ -65,7 +65,7 @@ describe("z.looseObject()", () => {
           hello: "world",
           bye: "world",
         })
-    ).toMatchObject({
+    ).toEqual({
       hello: "world",
       bye: "world",
     });
@@ -81,7 +81,7 @@ describe("z.looseObject()", () => {
           hello: "world",
           bye: "world",
         })
-    ).toMatchObject({
+    ).toEqual({
       hello: "world",
       bye: "world",
     });
@@ -128,10 +128,10 @@ describe("z.object().catchall()", () => {
           hello: "world",
           test: 69,
         })
-    ).toMatchObject({
+    ).toEqual({
       hello: "world",
       test: 69,
-    });
+    } as any);
   });
 
   test("error in base object", () => {
@@ -185,5 +185,50 @@ describe("z.object().keyof()", () => {
     expectZodErrorMessage(k.safeParse("hello")).toMatch(
       'string must be one of the following: "foo", "bar"'
     );
+  });
+});
+
+describe("z.object().extend()", () => {
+  test("extend returns object with the new properties", () => {
+    const a = z.string();
+    const b = z.number();
+    const k = z.object({ foo: a });
+    expect(k.extend({ bar: b }).shape).toEqual({
+      foo: a,
+      bar: b,
+    });
+    expect(k.loose().extend({ bar: b }).shape).toEqual({
+      foo: a,
+      bar: b,
+    });
+    expect(k.strict().extend({ bar: b }).shape).toEqual({
+      foo: a,
+      bar: b,
+    });
+    expect(k.catchall(z.number()).extend({ bar: b }).shape).toEqual({
+      foo: a,
+      bar: b,
+    });
+  });
+
+  test("extend by using spread syntax", () => {
+    const a = z.string();
+    const b = z.number();
+    const c = z.boolean();
+
+    const k = z.object({ foo: a });
+    const l = z.object({ bar: b });
+
+    expect(
+      z.object({
+        ...k.shape,
+        ...l.shape,
+        test: c,
+      }).shape
+    ).toEqual({
+      foo: a,
+      bar: b,
+      test: c,
+    });
   });
 });
