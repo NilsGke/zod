@@ -1,6 +1,5 @@
 import { ZodBase, type Transformer } from "./base";
-import number from "./number";
-import string from "./string";
+import _enum from "./enum";
 import type { Check, Infer } from "./types";
 
 type ObjectShape = Record<string, ZodBase<any, any>>;
@@ -82,6 +81,12 @@ abstract class ZodBaseObject<
 
   catchall<C extends ZodBase<any, any>>(catchallSchema: C) {
     return catchallObject<S, C>(this.shape, catchallSchema);
+  }
+
+  keyof() {
+    type Keys = Extract<keyof S, string>[];
+    const keys = Object.keys(this.shape) as Keys;
+    return _enum<Keys>(keys);
   }
 
   clone(): this {

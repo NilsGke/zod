@@ -38,12 +38,6 @@ class ZodEnum<T extends readonly [...string[]]> extends ZodBase<T[number]> {
 
   clone(): this {
     throw Error("clone should never be used on ZodEnum");
-    const clone = new ZodEnum<T>(
-      [...this.validStrings] as const as T,
-      this.checks.slice()
-    );
-    clone.validStrings = new Set(this.validStrings);
-    return clone as this;
   }
 
   exclude<const K extends readonly [...string[]]>(disallowedStrings: K) {
@@ -60,9 +54,10 @@ class ZodEnum<T extends readonly [...string[]]> extends ZodBase<T[number]> {
     return _enum(newStrings);
   }
 
-  // override parse and safeParse to make input accept strings instead of exact literal
-  parse = (input: string) => super.parse(input as T[number]);
-  safeParse = (input: string) => super.safeParse(input as T[number]);
+  // override parse and safeParse to make input accept literals and any string
+  parse = (input: T[number] | (string & {})) => super.parse(input as T[number]);
+  safeParse = (input: T[number] | (string & {})) =>
+    super.safeParse(input as T[number]);
 }
 
 const _enum = <const T extends [...string[]]>(values: T) => new ZodEnum(values);

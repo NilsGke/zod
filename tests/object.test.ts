@@ -176,3 +176,14 @@ describe("z.object().shape", () => {
     expect(z.object({ foo: a, bar: b }).shape.bar).toBe(b);
   });
 });
+
+describe("z.object().keyof()", () => {
+  test("keyof returns a enum with the correct keys", () => {
+    const k = z.object({ foo: z.string(), bar: z.number() }).keyof();
+    expect(k.parse("foo")).toMatch("foo");
+    expect(k.parse("bar")).toMatch("bar");
+    expectZodErrorMessage(k.safeParse("hello")).toMatch(
+      'string must be one of the following: "foo", "bar"'
+    );
+  });
+});
