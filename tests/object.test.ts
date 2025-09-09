@@ -166,3 +166,13 @@ describe("z.object().catchall()", () => {
     );
   });
 });
+
+describe("z.object().shape", () => {
+  const a = z.string();
+  const b = z.number();
+
+  test("shape returns correct internal schema", () => {
+    expect(z.object({ foo: a, bar: b }).shape.foo).toBe(a);
+    expect(z.object({ foo: a, bar: b }).shape.bar).toBe(b);
+  });
+});

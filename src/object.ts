@@ -20,7 +20,7 @@ abstract class ZodBaseObject<
   InputShape extends Record<keyof S, any> = InferShape<S>,
   OutputShape extends Record<keyof S, any> = InferShape<S>
 > extends ZodBase<InputShape, OutputShape, object> {
-  shape: S;
+  readonly shape: S;
 
   constructor(
     shape: S,
