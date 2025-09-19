@@ -1,17 +1,17 @@
-import type { Check, CheckResult } from "./types";
+import type { CheckFunction, Parse, TransformerFunction } from "./types";
 
 export type Transformer<Input, Output> = (input: Input) => Output;
 
 export abstract class ZodBase<Input, Output = Input, PrimitiveInput = Input> {
-  protected readonly checks: Check<Input>[];
+  protected readonly checks: CheckFunction<Input>[];
   protected transformer?: Transformer<Input, Output>;
-  protected typeCheck?: Check<Input>;
-  protected baseChecks: Check<Input>[];
+  protected typeCheck?: CheckFunction<Input>;
+  protected baseChecks: CheckFunction<Input>[];
 
   constructor(options?: {
     typeCheck: (val: unknown) => val is PrimitiveInput;
     typeErrorMessage: string | ((input: unknown) => string);
-    baseChecks?: Check<Input>[];
+    baseChecks?: CheckFunction<Input>[];
     transformer?: Transformer<Input, Output>;
   }) {
     const errMsg =
@@ -31,7 +31,7 @@ export abstract class ZodBase<Input, Output = Input, PrimitiveInput = Input> {
   }
 
   abstract clone(): this;
-  protected cloneAndAddCheck(check: Check<Input>): this {
+  protected cloneAndAddCheck(check: CheckFunction<Input>): this {
     const clone = this.clone();
     clone.checks.push(check);
     return clone;
@@ -41,13 +41,21 @@ export abstract class ZodBase<Input, Output = Input, PrimitiveInput = Input> {
     return new ZodOptional(this);
   }
 
+  /** applies the transformers to a input value */
+  transform(input: Input): Output {
+    let value = input;
+    // apply final transformer
+    if (this.transformer) return this.transformer(value);
+    else return value as Output extends Input ? Output : never;
+  }
+
   parse(input: Input) {
     const result = this.safeParse(input);
     if (result.success) return result.result;
     throw new Error(result.errorMessage);
   }
 
-  safeParse(input: Input): CheckResult<Output> {
+  safeParse(input: Input): Parse.Result<Output> {
     let value = input;
 
     const checks = [
@@ -59,13 +67,11 @@ export abstract class ZodBase<Input, Output = Input, PrimitiveInput = Input> {
     for (let check of checks) {
       const checkRes = check(value);
       if (!checkRes.success) return checkRes;
-      else value = checkRes.result;
     }
 
-    if (this.transformer)
-      return { success: true, result: this.transformer(value) };
+    const output = this.transform(value);
 
-    return { success: true, result: value as any as Output }; // need `as any as Ouput` since we cannot check in the type if a transformer has been set
+    return { success: true, result: output }; // need `as any as Ouput` since we cannot check in the type if a transformer has been set
   }
 }
 

@@ -1,5 +1,5 @@
 import { ZodBase } from "./base";
-import type { Check, CheckResult } from "./types";
+import type { CheckFunction, Check } from "./types";
 
 type ExcludeFromArray<
   T extends readonly [...string[]],
@@ -11,10 +11,12 @@ type ExtractFromArray<
   K extends readonly [...string[]]
 > = Extract<T[number], K[number]>[];
 
-class ZodEnum<T extends readonly [...string[]]> extends ZodBase<T[number]> {
+export class ZodEnum<T extends readonly [...string[]]> extends ZodBase<
+  T[number]
+> {
   private validStrings: Set<string>;
 
-  constructor(validStrings: T, checks?: Check<T[number]>[]) {
+  constructor(validStrings: T, checks?: CheckFunction<T[number]>[]) {
     super({
       typeCheck: (input): input is string => typeof input === "string",
       typeErrorMessage: "input must be a string",
@@ -23,9 +25,9 @@ class ZodEnum<T extends readonly [...string[]]> extends ZodBase<T[number]> {
     this.validStrings = new Set(validStrings);
 
     this.checks.push(
-      (input: string): CheckResult<string> =>
+      (input: string): Check.Result =>
         this.validStrings.has(input)
-          ? { success: true, result: input }
+          ? { success: true }
           : {
               success: false,
               errorMessage: `string must be one of the following: ${validStrings

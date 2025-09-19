@@ -28,11 +28,11 @@ describe("z.object()", () => {
   test("property error", () => {
     expectZodErrorMessage(
       z.object({ hello: z.string() }).safeParse({ hello: 3 } as any)
-    ).toMatch(/value of key "hello" resulted in an error:\n\t.+/);
+    ).toMatch(/^following keys failed:\n\t- "hello": .+$/);
 
     expectZodErrorMessage(
       z.object({ hello: z.string().max(3) }).safeParse({ hello: "world" })
-    ).toMatch(/value of key "hello" resulted in an error:\n\t.+/);
+    ).toMatch(/^following keys failed:\n\t- "hello": .+$/);
   });
 
   test("missing property", () => {
@@ -42,12 +42,14 @@ describe("z.object()", () => {
           hello: z.string(),
         })
         .safeParse({} as any)
-    ).toMatch(/input is missing key: "hello"/);
+    ).toMatch('object is missing keys: "hello"');
   });
 
   test("strips unexpected property", () => {
     expect(
-      z.object({ hello: z.string() }).parse({ hello: "world", bye: "world" })
+      z
+        .object({ hello: z.string() })
+        .parse({ hello: "world", bye: "world" } as any)
     ).toEqual({
       hello: "world",
     });
@@ -99,7 +101,7 @@ describe("z.strictObject()", () => {
           hello: "world",
           bye: "world",
         } as any)
-    ).toMatch('unexpected key "bye" in input');
+    ).toMatch('unexpected keys: "bye"');
   });
   test("z.object().strict() also throws on unexpected property", () => {
     expectZodErrorMessage(
@@ -112,7 +114,7 @@ describe("z.strictObject()", () => {
           hello: "world",
           bye: "world",
         } as any)
-    ).toMatch('unexpected key "bye" in input');
+    ).toMatch('unexpected keys: "bye"');
   });
 });
 
@@ -145,9 +147,7 @@ describe("z.object().catchall()", () => {
           hello: true,
           test: 69,
         } as any)
-    ).toMatch(
-      'value of key "hello" resulted in an error:\n\tinput must be a string'
-    );
+    ).toMatch(/^following keys failed:\n\t- \"hello\": .+$/);
   });
 
   test("throws on error on incorrect catch", () => {
@@ -162,7 +162,7 @@ describe("z.object().catchall()", () => {
           test: true,
         })
     ).toMatch(
-      /error in catchall schema for key: "test":\n\tinput must be a number/
+      /^following key(s)? failed passthrough schema:\n\t\"test"\ ->.+$/
     );
   });
 });

@@ -1,8 +1,8 @@
 import { ZodBase } from "./base";
-import { type Check, type CheckResult } from "./types";
+import { type CheckFunction } from "./types";
 
 class ZodString extends ZodBase<string> {
-  constructor(checks?: Check<string>[]) {
+  constructor(checks?: CheckFunction<string>[]) {
     super({
       typeCheck: (input: unknown) => typeof input === "string",
       typeErrorMessage: "input must be a string",

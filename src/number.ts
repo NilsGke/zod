@@ -1,8 +1,8 @@
 import { ZodBase } from "./base";
-import type { Check } from "./types";
+import type { CheckFunction } from "./types";
 
 class ZodNumber extends ZodBase<number> {
-  constructor(checks?: Check<number>[]) {
+  constructor(checks?: CheckFunction<number>[]) {
     super({
       typeCheck: (input: unknown) => typeof input === "number",
       typeErrorMessage: "input must be a number",
@@ -17,18 +17,15 @@ class ZodNumber extends ZodBase<number> {
   gt(max: number) {
     return this.cloneAndAddCheck((num) =>
       num > max
-        ? { success: true, result: num }
-        : {
-            success: false,
-            errorMessage: `number must be greater then ${max}`,
-          }
+        ? { success: true }
+        : { success: false, errorMessage: `number must be greater then ${max}` }
     );
   }
 
   gte(max: number) {
     return this.cloneAndAddCheck((num) =>
       num >= max
-        ? { success: true, result: num }
+        ? { success: true }
         : {
             success: false,
             errorMessage: `number must be greater then or equal to ${max}`,
@@ -39,18 +36,15 @@ class ZodNumber extends ZodBase<number> {
   lt(max: number) {
     return this.cloneAndAddCheck((num) =>
       num < max
-        ? { success: true, result: num }
-        : {
-            success: false,
-            errorMessage: `number must be less then ${max}`,
-          }
+        ? { success: true }
+        : { success: false, errorMessage: `number must be less then ${max}` }
     );
   }
 
   lte(max: number) {
     return this.cloneAndAddCheck((num) =>
       num <= max
-        ? { success: true, result: num }
+        ? { success: true }
         : {
             success: false,
             errorMessage: `number must be less then or equal to ${max}`,
@@ -61,55 +55,40 @@ class ZodNumber extends ZodBase<number> {
   positive() {
     return this.cloneAndAddCheck((num) =>
       num > 0
-        ? { success: true, result: num }
-        : {
-            success: false,
-            errorMessage: `number must be positive`,
-          }
+        ? { success: true }
+        : { success: false, errorMessage: `number must be positive` }
     );
   }
 
   negative() {
     return this.cloneAndAddCheck((num) =>
       num < 0
-        ? { success: true, result: num }
-        : {
-            success: false,
-            errorMessage: `number must be negative`,
-          }
+        ? { success: true }
+        : { success: false, errorMessage: `number must be negative` }
     );
   }
 
   nonpositive() {
     return this.cloneAndAddCheck((num) =>
       num <= 0
-        ? { success: true, result: num }
-        : {
-            success: false,
-            errorMessage: `number cannot be positive`,
-          }
+        ? { success: true }
+        : { success: false, errorMessage: `number cannot be positive` }
     );
   }
 
   nonnegative() {
     return this.cloneAndAddCheck((num) =>
       num >= 0
-        ? { success: true, result: num }
-        : {
-            success: false,
-            errorMessage: `number cannot be negative`,
-          }
+        ? { success: true }
+        : { success: false, errorMessage: `number cannot be negative` }
     );
   }
 
   multiple(n: number) {
     return this.cloneAndAddCheck((num) =>
       num % n == 0
-        ? { success: true, result: num }
-        : {
-            success: false,
-            errorMessage: `number must be a multiple of ${n}`,
-          }
+        ? { success: true }
+        : { success: false, errorMessage: `number must be a multiple of ${n}` }
     );
   }
 }

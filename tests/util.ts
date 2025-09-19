@@ -1,7 +1,7 @@
-import { CheckResult } from "../src/types";
+import type { Check } from "../src/types";
 import { expect } from "bun:test";
 
-export const expectZodErrorMessage = <T>(result: CheckResult<T>) => {
+export const expectZodErrorMessage = <T>(result: Check.Result) => {
   expect(result.success).toBe(false);
   if (result.success)
     throw Error(
