@@ -1,5 +1,5 @@
+import { ZodAny } from "./any";
 import { ZodBase } from "./base";
-import type { ZodEnum } from "./enum";
 import _enum from "./enum";
 import type { Check, Infer } from "./types";
 
@@ -210,7 +210,7 @@ class ZodObject<
             throw Error(
               "value indexed with keyof schema is undefined despite baseCheck running successfull"
             );
-          const result = schema.transform(value);
+          const result = schema.__transform(value);
           partialOutput[key] = result;
         });
 
@@ -233,7 +233,9 @@ class ZodObject<
                   input[key as keyof typeof input];
               else if (strictness.mode === "catchall")
                 partialUnknownOutput[key as keyof typeof partialUnknownOutput] =
-                  strictness.schema.transform(input[key as keyof typeof input]);
+                  strictness.schema.__transform(
+                    input[key as keyof typeof input]
+                  );
             });
 
             const unknownOutput = partialUnknownOutput as Exclude<
@@ -264,8 +266,72 @@ class ZodObject<
   keyof = () =>
     _enum(Object.keys(this.shape) as Extract<keyof Shape, string>[]);
 
-  extend = (shape: ObjectShape) =>
+  extend = <S extends ObjectShape>(shape: S) =>
     new ZodObject({ ...this.shape, ...shape }, this.strictness);
+
+  safeExtend = <S extends ObjectShape>(
+    shape: S & {
+      [k in keyof S]: k extends keyof Shape
+        ? S[k] extends Shape[k]
+          ? S[k]
+          : never
+        : S[k];
+    }
+  ) => {
+    const oldShapeKeys = new Set<keyof Shape>(Object.keys(this.shape));
+    const newShapeKeys = new Set<keyof S>(Object.keys(shape));
+    const duplicateKeys = oldShapeKeys.intersection(newShapeKeys) as Set<
+      Extract<keyof Shape, keyof S>
+    >;
+
+    // holds keys that only appear in one shape (no duplicates)
+    type UniqueOldShape = Omit<Shape, keyof S>;
+    const uniqueOldShape: Partial<UniqueOldShape> = {};
+    type UniqueNewShape = Omit<S, keyof Shape>;
+    const uniqueNewShape: Partial<UniqueNewShape> = {};
+
+    // add keys that only exist in the current shape
+    (
+      oldShapeKeys.difference(newShapeKeys) as Set<
+        Exclude<keyof Shape, keyof S>
+      >
+    ).forEach((key) => (uniqueOldShape[key] = this.shape[key]));
+
+    // add keys that only exist in the passed shape
+    (
+      newShapeKeys.difference(oldShapeKeys) as Set<
+        Exclude<keyof S, keyof Shape>
+      >
+    ).forEach((key) => (uniqueNewShape[key] = shape[key]));
+
+    // duplicate keys
+    type DuplicateShape = Pick<Shape, Extract<keyof Shape, keyof S>>;
+    const duplicatesShape: Partial<DuplicateShape> = {};
+
+    // add duplicates
+    duplicateKeys.forEach((key) => {
+      const thisName = this.shape[key]!.constructor.name;
+      const thatName = shape[key]!.constructor.name;
+      if (thisName !== thatName && thatName !== ZodAny.constructor.name)
+        throw Error(`${thatName} cannot be used to extend ${thisName}`);
+
+      const newSchema = this.shape[key]!.clone() as Shape[typeof key];
+      newSchema.__addChecks(shape[key]!.__checks);
+      duplicatesShape[key] = newSchema;
+    });
+
+    const reqUniqueOldShape = uniqueOldShape as UniqueOldShape;
+    const reqUniqueNewShape = uniqueNewShape as UniqueNewShape;
+    const reqDuplicatesShape = duplicatesShape as DuplicateShape;
+
+    const newShape = {
+      ...reqUniqueOldShape,
+      ...reqUniqueNewShape,
+      ...reqDuplicatesShape,
+    } as Shape & S;
+
+    return new ZodObject(newShape, this.strictness);
+  };
 
   // transforming constructor methods
   strip = () => object(this.shape);

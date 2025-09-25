@@ -232,3 +232,38 @@ describe("z.object().extend()", () => {
     });
   });
 });
+
+describe("z.object().safeExtend()", () => {
+  test("safeExtend throws on different base type", () => {
+    expect(() =>
+      z.object({ foo: z.number() }).safeExtend({ foo: z.string() } as any)
+    ).toThrow("ZodString cannot be used to extend ZodNumber");
+  });
+
+  test("safeExtend works like extend on non intersecting keys", () => {
+    const a = z.number();
+    const b = z.string();
+    expect(z.object({ foo: a }).safeExtend({ bar: b }).shape).toMatchObject(
+      z.object({ foo: a }).extend({ bar: b }).shape
+    );
+  });
+
+  test("safeExtend can extend same keys with same base types and carries over the checks", () => {
+    const schema = z
+      .object({ foo: z.number().gt(0) })
+      .safeExtend({ foo: z.number().lt(3) });
+
+    // initial check
+    expectZodErrorMessage(schema.safeParse({ foo: 0 })).toMatch(
+      'following keys failed:\n\t- "foo": number must be greater then 0'
+    );
+
+    // new check
+    expectZodErrorMessage(schema.safeParse({ foo: 3 })).toMatch(
+      'following keys failed:\n\t- "foo": number must be less then 3'
+    );
+
+    // can pass
+    expect(schema.parse({ foo: 2 })).toMatchObject({ foo: 2 });
+  });
+});

@@ -1,6 +1,6 @@
 import { ZodBase } from "./base";
 
-class ZodAny extends ZodBase<any> {
+export class ZodAny extends ZodBase<any> {
   clone() {
     throw Error("clone should not be used on this class");
     return this;

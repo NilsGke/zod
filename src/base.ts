@@ -41,8 +41,15 @@ export abstract class ZodBase<Input, Output = Input, PrimitiveInput = Input> {
     return new ZodOptional(this);
   }
 
-  /** applies the transformers to a input value */
-  transform(input: Input): Output {
+  get __checks() {
+    return this.checks;
+  }
+
+  /** internal method to add checks to zod element from the outside */
+  __addChecks = (check: CheckFunction<Input>[]) => this.checks.push(...check);
+
+  /** internal method to aply the transformers to a input value */
+  __transform(input: Input): Output {
     let value = input;
     // apply final transformer
     if (this.transformer) return this.transformer(value);
@@ -69,7 +76,7 @@ export abstract class ZodBase<Input, Output = Input, PrimitiveInput = Input> {
       if (!checkRes.success) return checkRes;
     }
 
-    const output = this.transform(value);
+    const output = this.__transform(value);
 
     return { success: true, result: output }; // need `as any as Ouput` since we cannot check in the type if a transformer has been set
   }
