@@ -78,7 +78,7 @@ export abstract class ZodBase<Input, Output = Input, PrimitiveInput = Input> {
 
     const output = this.__transform(value);
 
-    return { success: true, result: output }; // need `as any as Ouput` since we cannot check in the type if a transformer has been set
+    return { success: true, result: output };
   }
 }
 

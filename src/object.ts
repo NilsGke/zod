@@ -333,6 +333,18 @@ class ZodObject<
     return new ZodObject(newShape, this.strictness);
   };
 
+  pick = <K extends keyof Shape>(pickShape: {
+    [L in K]: L extends keyof Shape ? true : never;
+  }) => {
+    const newShape = {} as { [L in K]: Shape[L] };
+
+    (Object.keys(pickShape) as K[]).forEach((key) => {
+      newShape[key] = this.shape[key];
+    });
+
+    return new ZodObject(newShape, this.strictness);
+  };
+
   // transforming constructor methods
   strip = () => object(this.shape);
   loose = () => looseObject(this.shape);

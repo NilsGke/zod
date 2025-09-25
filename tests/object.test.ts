@@ -267,3 +267,15 @@ describe("z.object().safeExtend()", () => {
     expect(schema.parse({ foo: 2 })).toMatchObject({ foo: 2 });
   });
 });
+
+describe("z.object().pick()", () => {
+  const a = z.number();
+  const b = z.string();
+  expect(z.object({ foo: a, bar: b }).pick({ bar: true }).shape).toMatchObject({
+    bar: b,
+  });
+
+  expect(
+    z.object({ foo: a, bar: b }).pick({ buzz: true } as any).shape
+  ).toMatchObject({});
+});
