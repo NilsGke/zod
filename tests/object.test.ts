@@ -243,7 +243,7 @@ describe("z.object().safeExtend()", () => {
   test("safeExtend works like extend on non intersecting keys", () => {
     const a = z.number();
     const b = z.string();
-    expect(z.object({ foo: a }).safeExtend({ bar: b }).shape).toMatchObject(
+    expect(z.object({ foo: a }).safeExtend({ bar: b }).shape).toEqual(
       z.object({ foo: a }).extend({ bar: b }).shape
     );
   });
@@ -264,18 +264,33 @@ describe("z.object().safeExtend()", () => {
     );
 
     // can pass
-    expect(schema.parse({ foo: 2 })).toMatchObject({ foo: 2 });
+    expect(schema.parse({ foo: 2 })).toEqual({ foo: 2 });
   });
 });
 
 describe("z.object().pick()", () => {
   const a = z.number();
   const b = z.string();
-  expect(z.object({ foo: a, bar: b }).pick({ bar: true }).shape).toMatchObject({
+  expect(z.object({ foo: a, bar: b }).pick({ bar: true }).shape).toEqual({
     bar: b,
   });
 
-  expect(
-    z.object({ foo: a, bar: b }).pick({ buzz: true } as any).shape
-  ).toMatchObject({});
+  expect(z.object({ foo: a, bar: b }).pick({ buzz: true } as {}).shape).toEqual(
+    {}
+  );
+});
+
+describe("z.object().omit()", () => {
+  const a = z.number();
+  const b = z.string();
+  expect(z.object({ foo: a, bar: b }).omit({ bar: true }).shape).toEqual({
+    foo: a,
+  });
+
+  expect(z.object({ foo: a, bar: b }).omit({ buzz: true } as {}).shape).toEqual(
+    {
+      foo: a,
+      bar: b,
+    }
+  );
 });

@@ -345,6 +345,21 @@ class ZodObject<
     return new ZodObject(newShape, this.strictness);
   };
 
+  omit = <Keys extends keyof Shape>(omitShape: {
+    [K in keyof Shape]?: K extends keyof Shape ? true : never;
+  }) => {
+    const newShape = {} as Omit<Shape, Keys>;
+
+    (Object.keys(this.shape) as (keyof Shape)[]).forEach((key) => {
+      if (!omitShape[key])
+        newShape[key as Exclude<keyof Shape, Keys>] = this.shape[
+          key
+        ] as Shape[Exclude<keyof Shape, Keys>]; // did not find a better way 😔
+    });
+
+    return new ZodObject(newShape, this.strictness);
+  };
+
   // transforming constructor methods
   strip = () => object(this.shape);
   loose = () => looseObject(this.shape);
