@@ -128,7 +128,7 @@ describe("z.object().catchall()", () => {
         .catchall(z.number())
         .parse({
           hello: "world",
-          test: 69,
+          test: 1234,
         })
     ).toEqual({
       hello: "world",

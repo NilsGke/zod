@@ -1,11 +1,23 @@
 import { ZodAny } from "./any";
-import { ZodBase } from "./base";
+import { ZodBase, ZodOptional } from "./base";
 import _enum from "./enum";
 import type { Check, Infer } from "./types";
 
 type ObjectShape = Record<string, ZodBase<any, any>>;
+
+// filters out optional keys
+type RequiredKeys<Shape extends ObjectShape> = {
+  [Key in keyof Shape]: Shape[Key] extends ZodOptional<any> ? never : Key;
+}[keyof Shape];
+// filters out required keys
+type OptionalKeys<Shape extends ObjectShape> = {
+  [Key in keyof Shape]: Shape[Key] extends ZodOptional<any> ? Key : never;
+}[keyof Shape];
+
 type InferShape<Shape extends ObjectShape> = {
-  [key in keyof Shape]: Infer<Shape[key]>;
+  [Key in Exclude<RequiredKeys<Shape>, never>]: Infer<Shape[Key]>;
+} & {
+  [K in Exclude<OptionalKeys<Shape>, never>]?: Infer<Shape[K]>;
 };
 
 namespace ObjectStrictness {
@@ -35,13 +47,13 @@ type InputShape<
     ? Infer<CatchallSchema>
     : never
 > = Strictness extends ObjectStrictness.Strict
-  ? Shape
+  ? InferShape<Shape>
   : Strictness extends ObjectStrictness.Passthrough
-  ? Shape & { [key: string]: any }
+  ? InferShape<Shape> & { [key: string]: any }
   : Strictness extends ObjectStrictness.Strip
-  ? Shape & { [key: string]: any }
+  ? InferShape<Shape> & { [key: string]: any }
   : Strictness extends ObjectStrictness.Catchall<ZodBase<any>>
-  ? Shape & { [key: string]: CatchallType }
+  ? InferShape<Shape> & { [key: string]: CatchallType }
   : never;
 
 type OutputShape<
@@ -51,7 +63,7 @@ type OutputShape<
     | ObjectStrictness.Passthrough
     | ObjectStrictness.Strip
     | ObjectStrictness.Catchall<ZodBase<any>>
-> = Shape &
+> = InferShape<Shape> &
   (Strictness extends ObjectStrictness.Strict
     ? {}
     : Strictness extends ObjectStrictness.Passthrough
@@ -59,7 +71,7 @@ type OutputShape<
     : Strictness extends ObjectStrictness.Strip
     ? {}
     : Strictness extends ObjectStrictness.Catchall<ZodBase<any>>
-    ? { [key: string]: Strictness["schema"] }
+    ? { [key: string]: Infer<Strictness["schema"]> }
     : {});
 
 class ZodObject<
@@ -71,9 +83,9 @@ class ZodObject<
     | ObjectStrictness.Catchall<ZodBase<any>>
 > extends ZodBase<
   // input
-  InferShape<InputShape<Shape, Strictness>>,
+  InputShape<Shape, Strictness>,
   // output
-  InferShape<OutputShape<Shape, Strictness>>,
+  OutputShape<Shape, Strictness>,
   // allowed primitive input type
   object
 > {
@@ -90,7 +102,7 @@ class ZodObject<
         `input must be of type object, received: ${typeof value}`,
       baseChecks: [
         (input) => {
-          const shapeKeys = new Set(Object.keys(this.shape) as (keyof Shape)[]);
+          const shapeKeys = new Set(Object.keys(shape) as (keyof Shape)[]);
           const unknownKeys = new Set(Object.keys(input)).difference(shapeKeys);
 
           // deal with extra keys
@@ -116,7 +128,7 @@ class ZodObject<
                   .map((key) => ({
                     key,
                     result: catchallStrictness.schema.safeParse(
-                      input[key]
+                      (input as any)[key]
                     ) as Check.Result,
                   }));
 
@@ -159,7 +171,9 @@ class ZodObject<
 
           // deal with expected keys
           const missingKeys = Object.keys(shape).filter(
-            (key) => input[key] === undefined
+            (key) =>
+              (input as any)[key] === undefined &&
+              !(shape[key] instanceof ZodOptional)
           );
           if (missingKeys.length > 0)
             return {
@@ -171,7 +185,7 @@ class ZodObject<
 
           const results = Object.keys(shape).map((key) => ({
             key,
-            result: shape[key]!.safeParse(input[key]),
+            result: shape[key]!.safeParse((input as any)[key]),
           }));
 
           const failedKeys = results.filter(({ result }) => !result.success);
@@ -220,7 +234,7 @@ class ZodObject<
         switch (strictness.mode) {
           case "strict":
           case "strip":
-            return output as InferShape<OutputShape<Shape, Strictness>>;
+            return output as OutputShape<Shape, Strictness>;
 
           case "passthrough":
           case "catchall":
@@ -246,11 +260,11 @@ class ZodObject<
             return {
               ...output,
               ...unknownOutput,
-            } as InferShape<OutputShape<Shape, Strictness>>;
+            } as OutputShape<Shape, Strictness>;
 
           default:
             const _exhaustiveCheck: never = strictness;
-            return {} as InferShape<OutputShape<Shape, Strictness>>;
+            return {} as OutputShape<Shape, Strictness>;
         }
       },
     });
