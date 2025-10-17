@@ -1,4 +1,4 @@
-import type { CheckFunction, Parse, TransformerFunction } from "./types";
+import type { CheckFunction, Infer, Parse } from "./types";
 
 export type Transformer<Input, Output> = (input: Input) => Output;
 
@@ -82,12 +82,12 @@ export abstract class ZodBase<Input, Output = Input, PrimitiveInput = Input> {
   }
 }
 
-export class ZodOptional<T, K extends ZodBase<T>> extends ZodBase<
-  T | undefined
+export class ZodOptional<Schema extends ZodBase<any>> extends ZodBase<
+  Infer<Schema> | undefined
 > {
-  private baseSchema: K;
+  private baseSchema: Schema;
 
-  constructor(schema: K) {
+  constructor(schema: Schema) {
     super();
     this.baseSchema = schema;
 
@@ -112,7 +112,7 @@ export class ZodOptional<T, K extends ZodBase<T>> extends ZodBase<
 }
 
 export const optional = <S extends ZodBase<any>>(schema: S) =>
-  new ZodOptional<ReturnType<S["parse"]>, S>(schema);
+  new ZodOptional(schema);
 
 class ZodNullable<T, K extends ZodBase<T>> extends ZodBase<T | null> {
   private baseSchema: K;
