@@ -16,7 +16,7 @@ export class ZodStringbool extends ZodBase<string, boolean> {
       truthy: ["true", "1", "yes", "on", "y", "enabled"],
       falsy: ["false", "0", "no", "off", "n", "disabled"],
       case: "insensitive",
-    }
+    },
   ) {
     super({
       typeCheck: (value) => typeof value === "string",

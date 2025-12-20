@@ -5,7 +5,7 @@ import { z } from "../src";
 describe("z.number()", () => {
   test("not a number", () => {
     expectZodErrorMessage(z.number().safeParse("hello" as any)).toMatch(
-      "input must be a number"
+      "input must be a number",
     );
   });
   test("number", () => {
@@ -16,13 +16,13 @@ describe("z.number()", () => {
 describe("z.number().gt()", () => {
   test("not gt", () => {
     expectZodErrorMessage(z.number().gt(4).safeParse(3)).toMatch(
-      /number must be greater then.+/
+      /number must be greater then.+/,
     );
   });
 
   test("equal", () => {
     expectZodErrorMessage(z.number().gt(4).safeParse(4)).toMatch(
-      /number must be greater then.+/
+      /number must be greater then.+/,
     );
   });
 
@@ -34,7 +34,7 @@ describe("z.number().gt()", () => {
 describe("z.number().gte()", () => {
   test("not gte", () => {
     expectZodErrorMessage(z.number().gte(4).safeParse(3)).toMatch(
-      /number must be greater then.+/
+      /number must be greater then.+/,
     );
   });
 
@@ -49,13 +49,13 @@ describe("z.number().gte()", () => {
 describe("z.number().lt()", () => {
   test("not lt", () => {
     expectZodErrorMessage(z.number().lt(4).safeParse(5)).toMatch(
-      /number must be less then.+/
+      /number must be less then.+/,
     );
   });
 
   test("equal", () => {
     expectZodErrorMessage(z.number().lt(4).safeParse(4)).toMatch(
-      /number must be less then.+/
+      /number must be less then.+/,
     );
   });
 
@@ -67,7 +67,7 @@ describe("z.number().lt()", () => {
 describe("z.number().lte()", () => {
   test("not lte", () => {
     expectZodErrorMessage(z.number().lte(4).safeParse(5)).toMatch(
-      /number must be less then or equal to.+/
+      /number must be less then or equal to.+/,
     );
   });
 
@@ -82,13 +82,13 @@ describe("z.number().lte()", () => {
 describe("z.number().positive()", () => {
   test("negative", () => {
     expectZodErrorMessage(z.number().positive().safeParse(-5)).toMatch(
-      /number must be positive/
+      /number must be positive/,
     );
   });
 
   test("zero", () => {
     expectZodErrorMessage(z.number().positive().safeParse(0)).toMatch(
-      /number must be positive/
+      /number must be positive/,
     );
   });
   test("positive", () => {
@@ -99,13 +99,13 @@ describe("z.number().positive()", () => {
 describe("z.number().negative()", () => {
   test("positive", () => {
     expectZodErrorMessage(z.number().negative().safeParse(5)).toMatch(
-      /number must be negative/
+      /number must be negative/,
     );
   });
 
   test("zero", () => {
     expectZodErrorMessage(z.number().negative().safeParse(0)).toMatch(
-      /number must be negative/
+      /number must be negative/,
     );
   });
   test("positive", () => {
@@ -116,7 +116,7 @@ describe("z.number().negative()", () => {
 describe("z.number().nonpositive()", () => {
   test("negative", () => {
     expectZodErrorMessage(z.number().nonpositive().safeParse(2)).toMatch(
-      /number cannot be positive/
+      /number cannot be positive/,
     );
   });
 
@@ -131,7 +131,7 @@ describe("z.number().nonpositive()", () => {
 describe("z.number().nonnegative()", () => {
   test("positive", () => {
     expectZodErrorMessage(z.number().nonnegative().safeParse(-2)).toMatch(
-      /number cannot be negative/
+      /number cannot be negative/,
     );
   });
 
@@ -146,7 +146,7 @@ describe("z.number().nonnegative()", () => {
 describe("z.number().multiple()", () => {
   test("not multiple", () => {
     expectZodErrorMessage(z.number().multiple(2).safeParse(5)).toMatch(
-      /number must be a multiple of.+/
+      /number must be a multiple of.+/,
     );
   });
   test("multiple", () => {

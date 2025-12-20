@@ -11,7 +11,7 @@ describe("z.optional(z.string())", () => {
   });
   test("does not accept null", () => {
     expectZodErrorMessage(
-      z.optional(z.string()).safeParse(null as any)
+      z.optional(z.string()).safeParse(null as any),
     ).toMatch(/input must be.+/);
   });
 });
@@ -26,7 +26,7 @@ describe("z.optional(z.string()).unwrap()", () => {
       z
         .optional(z.string())
         .unwarp()
-        .safeParse(undefined as any)
+        .safeParse(undefined as any),
     ).toMatch(/input must be.+/);
   });
 });

@@ -5,7 +5,7 @@ import { z } from "../src";
 describe("z.string()", () => {
   test("not a string", () => {
     expectZodErrorMessage(z.string().safeParse(3 as any)).toMatch(
-      /input must be a string/
+      /input must be a string/,
     );
   });
   test("string", () => expect(z.string().parse("abc")).toBe("abc"));
@@ -15,7 +15,7 @@ describe("z.string()", () => {
 describe("z.string().min()", () => {
   test("to short", () => {
     expectZodErrorMessage(z.string().min(4).safeParse("abc")).toMatch(
-      /string must be at least.+/
+      /string must be at least.+/,
     );
   });
 
@@ -28,7 +28,7 @@ describe("z.string().min()", () => {
 describe("z.string().max()", () => {
   test("to long", () => {
     expectZodErrorMessage(z.string().max(3).safeParse("abcde")).toMatch(
-      /string can be max.+/
+      /string can be max.+/,
     );
   });
 
@@ -45,7 +45,7 @@ describe("z.string().length()", () => {
 
   test("not ok", () => {
     expectZodErrorMessage(z.string().length(3).safeParse("a")).toMatch(
-      /string must be exactly.+/
+      /string must be exactly.+/,
     );
   });
 });
@@ -61,7 +61,7 @@ describe("z.string().regex()", () => {
       z
         .string()
         .regex(/abcdefg/)
-        .safeParse("abc")
+        .safeParse("abc"),
     ));
 });
 
@@ -73,7 +73,7 @@ describe("z.string().startsWith()", () => {
 
   test("not ok", () => {
     expectZodErrorMessage(
-      z.string().startsWith("xyz").safeParse("abc")
+      z.string().startsWith("xyz").safeParse("abc"),
     ).toMatch(/string must start with.+/);
   });
 });
@@ -86,7 +86,7 @@ describe("z.string().endsWith()", () => {
 
   test("not ok", () => {
     expectZodErrorMessage(z.string().endsWith("xyz").safeParse("abc")).toMatch(
-      /string must end with.+/
+      /string must end with.+/,
     );
   });
 });
@@ -99,7 +99,7 @@ describe("z.string().includes()", () => {
 
   test("not ok", () => {
     expectZodErrorMessage(z.string().includes("xyz").safeParse("abc")).toMatch(
-      /string must include.+/
+      /string must include.+/,
     );
   });
 });
@@ -112,7 +112,7 @@ describe("z.string().uppercase()", () => {
 
   test("not ok", () => {
     expectZodErrorMessage(z.string().uppercase().safeParse("abc")).toMatch(
-      "string must be uppercase"
+      "string must be uppercase",
     );
   });
 });
@@ -125,7 +125,7 @@ describe("z.string().lowercase()", () => {
 
   test("not ok", () => {
     expectZodErrorMessage(z.string().lowercase().safeParse("ABC")).toMatch(
-      "string must be lowercase"
+      "string must be lowercase",
     );
   });
 });

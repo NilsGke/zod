@@ -22,7 +22,7 @@ class ZodString extends ZodBase<string> {
         : {
             success: false,
             errorMessage: `string must be at least ${length} characters long`,
-          }
+          },
     );
   }
 
@@ -33,7 +33,7 @@ class ZodString extends ZodBase<string> {
         : {
             success: false,
             errorMessage: `string can be max ${length} characters long`,
-          }
+          },
     );
   }
 
@@ -44,7 +44,7 @@ class ZodString extends ZodBase<string> {
         : {
             success: false,
             errorMessage: `string must be exactly ${length} characters long`,
-          }
+          },
     );
   }
 
@@ -55,7 +55,7 @@ class ZodString extends ZodBase<string> {
         : {
             success: false,
             errorMessage: `string does not match regex: ${regex}`,
-          }
+          },
     );
   }
 
@@ -63,7 +63,7 @@ class ZodString extends ZodBase<string> {
     return this.cloneAndAddCheck((str) =>
       str.startsWith(string)
         ? { success: true, result: str }
-        : { success: false, errorMessage: `string must start with "${str}"` }
+        : { success: false, errorMessage: `string must start with "${str}"` },
     );
   }
 
@@ -71,7 +71,7 @@ class ZodString extends ZodBase<string> {
     return this.cloneAndAddCheck((str) =>
       str.endsWith(string)
         ? { success: true, result: str }
-        : { success: false, errorMessage: `string must end with "${str}"` }
+        : { success: false, errorMessage: `string must end with "${str}"` },
     );
   }
 
@@ -79,7 +79,7 @@ class ZodString extends ZodBase<string> {
     return this.cloneAndAddCheck((str) =>
       str.includes(string)
         ? { success: true, result: str }
-        : { success: false, errorMessage: `string must include "${str}"` }
+        : { success: false, errorMessage: `string must include "${str}"` },
     );
   }
 
@@ -87,7 +87,7 @@ class ZodString extends ZodBase<string> {
     return this.cloneAndAddCheck((str) =>
       str === str.toUpperCase()
         ? { success: true, result: str }
-        : { success: false, errorMessage: "string must be uppercase" }
+        : { success: false, errorMessage: "string must be uppercase" },
     );
   }
 
@@ -95,7 +95,7 @@ class ZodString extends ZodBase<string> {
     return this.cloneAndAddCheck((str) =>
       str === str.toLowerCase()
         ? { success: true, result: str }
-        : { success: false, errorMessage: "string must be lowercase" }
+        : { success: false, errorMessage: "string must be lowercase" },
     );
   }
 }

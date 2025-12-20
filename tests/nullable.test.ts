@@ -11,7 +11,7 @@ describe("z.nullable(z.string())", () => {
   });
   test("does not accept undefined", () => {
     expectZodErrorMessage(
-      z.nullable(z.string()).safeParse(undefined as any)
+      z.nullable(z.string()).safeParse(undefined as any),
     ).toMatch(/input must be.+/);
   });
 });
@@ -26,7 +26,7 @@ describe("z.nullable(z.string()).unwrap()", () => {
       z
         .nullable(z.string())
         .unwarp()
-        .safeParse(null as any)
+        .safeParse(null as any),
     ).toMatch(/input must be.+/);
   });
 });

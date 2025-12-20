@@ -18,7 +18,10 @@ class ZodNumber extends ZodBase<number> {
     return this.cloneAndAddCheck((num) =>
       num > max
         ? { success: true }
-        : { success: false, errorMessage: `number must be greater then ${max}` }
+        : {
+            success: false,
+            errorMessage: `number must be greater then ${max}`,
+          },
     );
   }
 
@@ -29,7 +32,7 @@ class ZodNumber extends ZodBase<number> {
         : {
             success: false,
             errorMessage: `number must be greater then or equal to ${max}`,
-          }
+          },
     );
   }
 
@@ -37,7 +40,7 @@ class ZodNumber extends ZodBase<number> {
     return this.cloneAndAddCheck((num) =>
       num < max
         ? { success: true }
-        : { success: false, errorMessage: `number must be less then ${max}` }
+        : { success: false, errorMessage: `number must be less then ${max}` },
     );
   }
 
@@ -48,7 +51,7 @@ class ZodNumber extends ZodBase<number> {
         : {
             success: false,
             errorMessage: `number must be less then or equal to ${max}`,
-          }
+          },
     );
   }
 
@@ -56,7 +59,7 @@ class ZodNumber extends ZodBase<number> {
     return this.cloneAndAddCheck((num) =>
       num > 0
         ? { success: true }
-        : { success: false, errorMessage: `number must be positive` }
+        : { success: false, errorMessage: `number must be positive` },
     );
   }
 
@@ -64,7 +67,7 @@ class ZodNumber extends ZodBase<number> {
     return this.cloneAndAddCheck((num) =>
       num < 0
         ? { success: true }
-        : { success: false, errorMessage: `number must be negative` }
+        : { success: false, errorMessage: `number must be negative` },
     );
   }
 
@@ -72,7 +75,7 @@ class ZodNumber extends ZodBase<number> {
     return this.cloneAndAddCheck((num) =>
       num <= 0
         ? { success: true }
-        : { success: false, errorMessage: `number cannot be positive` }
+        : { success: false, errorMessage: `number cannot be positive` },
     );
   }
 
@@ -80,7 +83,7 @@ class ZodNumber extends ZodBase<number> {
     return this.cloneAndAddCheck((num) =>
       num >= 0
         ? { success: true }
-        : { success: false, errorMessage: `number cannot be negative` }
+        : { success: false, errorMessage: `number cannot be negative` },
     );
   }
 
@@ -88,7 +91,7 @@ class ZodNumber extends ZodBase<number> {
     return this.cloneAndAddCheck((num) =>
       num % n == 0
         ? { success: true }
-        : { success: false, errorMessage: `number must be a multiple of ${n}` }
+        : { success: false, errorMessage: `number must be a multiple of ${n}` },
     );
   }
 }

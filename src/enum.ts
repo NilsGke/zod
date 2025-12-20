@@ -3,12 +3,12 @@ import type { CheckFunction, Check } from "./types";
 
 type ExcludeFromArray<
   T extends readonly [...string[]],
-  K extends readonly [...string[]]
+  K extends readonly [...string[]],
 > = Exclude<T[number], K[number]>[];
 
 type ExtractFromArray<
   T extends readonly [...string[]],
-  K extends readonly [...string[]]
+  K extends readonly [...string[]],
 > = Extract<T[number], K[number]>[];
 
 export class ZodEnum<T extends readonly [...string[]]> extends ZodBase<
@@ -33,7 +33,7 @@ export class ZodEnum<T extends readonly [...string[]]> extends ZodBase<
               errorMessage: `string must be one of the following: ${validStrings
                 .map((s) => `"${s}"`)
                 .join(", ")}`,
-            }
+            },
     );
     if (checks) this.checks.push(...checks);
   }
@@ -44,14 +44,14 @@ export class ZodEnum<T extends readonly [...string[]]> extends ZodBase<
 
   exclude<const K extends readonly [...string[]]>(disallowedStrings: K) {
     const newStrings = [...this.validStrings, ...disallowedStrings].filter(
-      (s) => !disallowedStrings.includes(s)
+      (s) => !disallowedStrings.includes(s),
     );
     return _enum(newStrings as ExcludeFromArray<T, K>);
   }
 
   extract<const K extends readonly [...string[]]>(allowedStrings: K) {
     const newStrings = [...this.validStrings].filter((s) =>
-      allowedStrings.includes(s)
+      allowedStrings.includes(s),
     ) as ExtractFromArray<T, K>;
     return _enum(newStrings);
   }

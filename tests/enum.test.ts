@@ -5,12 +5,12 @@ import { z } from "../src";
 describe("z.enum()", () => {
   test("not a string", () => {
     expectZodErrorMessage(
-      z.enum(["abc", "def"]).safeParse(undefined as any)
+      z.enum(["abc", "def"]).safeParse(undefined as any),
     ).toMatch("input must be a string");
   });
   test("not in enum array", () => {
     expectZodErrorMessage(z.enum(["abc"]).safeParse("def")).toMatch(
-      "string must be one of the following"
+      "string must be one of the following",
     );
   });
   test("in enum array", () => {
@@ -21,7 +21,7 @@ describe("z.enum()", () => {
 describe("z.enum().exclude()", () => {
   test("not in enum array", () => {
     expectZodErrorMessage(
-      z.enum(["a", "b"]).exclude(["b"]).safeParse("b")
+      z.enum(["a", "b"]).exclude(["b"]).safeParse("b"),
     ).toMatch('string must be one of the following: "a"');
   });
   test("in enum array", () => {
@@ -35,7 +35,7 @@ describe("z.enum().exclude()", () => {
 describe("z.enum().extract()", () => {
   test("not in enum array", () => {
     expectZodErrorMessage(
-      z.enum(["a", "b"]).extract(["a"]).safeParse("b")
+      z.enum(["a", "b"]).extract(["a"]).safeParse("b"),
     ).toMatch('string must be one of the following: "a"');
   });
   test("in enum array", () => {
@@ -43,7 +43,7 @@ describe("z.enum().extract()", () => {
   });
   test("extract str that is not in enum array", () => {
     expectZodErrorMessage(
-      z.enum(["a", "b"]).extract(["k"]).safeParse("a")
+      z.enum(["a", "b"]).extract(["k"]).safeParse("a"),
     ).toMatch(/string must be one of the following: /);
   });
 });

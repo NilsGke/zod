@@ -24,7 +24,7 @@ describe("z.nullish(z.string()).unwrap()", () => {
       z
         .nullish(z.string())
         .unwarp()
-        .safeParse(null as any)
+        .safeParse(null as any),
     ).toMatch(/input must be.+/);
   });
 
@@ -33,7 +33,7 @@ describe("z.nullish(z.string()).unwrap()", () => {
       z
         .nullish(z.string())
         .unwarp()
-        .safeParse(undefined as any)
+        .safeParse(undefined as any),
     ).toMatch(/input must be.+/);
   });
 });

@@ -13,7 +13,7 @@ describe("z.stringbool()", () => {
 
   test("incorrect value", () => {
     expectZodErrorMessage(z.stringbool().safeParse("i dont know")).toMatch(
-      /input must be one of.+/
+      /input must be one of.+/,
     );
   });
 
@@ -30,13 +30,13 @@ describe("z.stringbool()", () => {
 
     test("incorrect value", () => {
       expectZodErrorMessage(custom.safeParse("si")).toMatch(
-        /input must be one of.+/
+        /input must be one of.+/,
       );
     });
 
     test("incorrect value (from original values)", () => {
       expectZodErrorMessage(custom.safeParse("yes")).toMatch(
-        /input must be one of.+/
+        /input must be one of.+/,
       );
     });
 
@@ -47,13 +47,13 @@ describe("z.stringbool()", () => {
             truthy: ["ja"],
             case: "sensitive",
           })
-          .safeParse("JA")
+          .safeParse("JA"),
       ).toMatch(/input must be one of:.+/);
       expect(
-        z.stringbool({ truthy: ["ja"], case: "sensitive" }).parse("ja")
+        z.stringbool({ truthy: ["ja"], case: "sensitive" }).parse("ja"),
       ).toBe(true);
       expect(
-        z.stringbool({ truthy: ["ja"], case: "sensitive" }).parse("ja")
+        z.stringbool({ truthy: ["ja"], case: "sensitive" }).parse("ja"),
       ).toBe(true);
     });
   });

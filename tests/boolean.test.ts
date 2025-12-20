@@ -5,7 +5,7 @@ import { z } from "../src";
 describe("z.boolean()", () => {
   test("not a boolean", () => {
     expectZodErrorMessage(z.boolean().safeParse("string" as any)).toMatch(
-      /input must be a boolean/
+      /input must be a boolean/,
     );
   });
   test("boolean", () => {
