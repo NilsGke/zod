@@ -220,7 +220,7 @@ class ZodObject<
           if (schema === undefined)
             throw Error("schema indexed with keyof schema is undefined");
           const value = input[key];
-          if (value === undefined)
+          if (!(schema instanceof ZodOptional) && value === undefined)
             throw Error(
               "value indexed with keyof schema is undefined despite baseCheck running successfull",
             );
@@ -368,6 +368,16 @@ class ZodObject<
     (Object.keys(this.shape) as (keyof Shape)[]).forEach((key) => {
       if (!omitShape.hasOwnProperty(key))
         newShape[key as NewKeys] = this.shape[key] as Shape[NewKeys];
+    });
+
+    return new ZodObject(newShape, this.strictness);
+  };
+
+  partial = () => {
+    const newShape = {} as { [K in keyof Shape]: ZodOptional<Shape[K]> };
+
+    (Object.keys(this.shape) as (keyof Shape)[]).forEach((key) => {
+      newShape[key] = new ZodOptional(this.shape[key]);
     });
 
     return new ZodObject(newShape, this.strictness);

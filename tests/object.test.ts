@@ -136,7 +136,7 @@ describe("z.object().catchall()", () => {
     } as any);
   });
 
-  test.only("error in base object", () => {
+  test("error in base object", () => {
     expectZodErrorMessage(
       z
         .object({
@@ -271,26 +271,62 @@ describe("z.object().safeExtend()", () => {
 describe("z.object().pick()", () => {
   const a = z.number();
   const b = z.string();
-  expect(z.object({ foo: a, bar: b }).pick({ bar: true }).shape).toEqual({
-    bar: b,
+  test("correct shape on pick", () => {
+    expect(z.object({ foo: a, bar: b }).pick({ bar: true }).shape).toEqual({
+      bar: b,
+    });
   });
 
-  expect(z.object({ foo: a, bar: b }).pick({ buzz: true } as {}).shape).toEqual(
-    {},
-  );
+  test("correct (empty) shape on pick that does not exist", () => {
+    expect(
+      z.object({ foo: a, bar: b }).pick({ buzz: true } as {}).shape,
+    ).toEqual({});
+  });
 });
 
 describe("z.object().omit()", () => {
   const a = z.number();
   const b = z.string();
-  expect(z.object({ foo: a, bar: b }).omit({ bar: true }).shape).toEqual({
-    foo: a,
+  test("correct shape on omit", () => {
+    expect(z.object({ foo: a, bar: b }).omit({ bar: true }).shape).toEqual({
+      foo: a,
+    });
   });
 
-  expect(z.object({ foo: a, bar: b }).omit({ buzz: true } as {}).shape).toEqual(
-    {
+  test("correct (full) shape on omit that does not exist", () => {
+    expect(
+      z.object({ foo: a, bar: b }).omit({ buzz: true } as {}).shape,
+    ).toEqual({
       foo: a,
       bar: b,
-    },
-  );
+    });
+  });
+});
+
+describe("z.object().partial()", () => {
+  const a = z.number();
+  const b = z.string();
+  test("correct shape", () => {
+    expect(z.object({ foo: a, bar: b }).partial().shape).toMatchObject({
+      foo: a.optional(),
+      bar: b.optional(),
+    });
+  });
+
+  test("parse empty object on partial", () => {
+    expect(z.object({ foo: a, bar: b }).partial().parse({})).toEqual({});
+  });
+
+  test("parse partial object on partial", () => {
+    const value = a.parse(1234);
+    expect(
+      z.object({ foo: a, bar: b }).partial().parse({ foo: value }),
+    ).toEqual({
+      foo: value,
+    });
+  });
+
+  test("direct optional propert", () => {
+    expect(z.object({ foo: z.number().optional() }).parse({})).toEqual({});
+  });
 });

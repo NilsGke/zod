@@ -30,3 +30,10 @@ describe("z.optional(z.string()).unwrap()", () => {
     ).toMatch(/input must be.+/);
   });
 });
+
+describe("z.xyz().optional()", () => {
+  test("correct parsing behavior", () => {
+    expect(z.number().optional().parse(0)).toBe(0);
+    expect(z.number().optional().parse(undefined)).toBeUndefined();
+  });
+});
