@@ -45,16 +45,16 @@ type InputShape<
     infer CatchallSchema
   >
     ? Infer<CatchallSchema>
-    : never
+    : never,
 > = Strictness extends ObjectStrictness.Strict
   ? InferShape<Shape>
   : Strictness extends ObjectStrictness.Passthrough
-  ? InferShape<Shape> & { [key: string]: any }
-  : Strictness extends ObjectStrictness.Strip
-  ? InferShape<Shape> & { [key: string]: any }
-  : Strictness extends ObjectStrictness.Catchall<ZodBase<any>>
-  ? InferShape<Shape> & { [key: string]: CatchallType }
-  : never;
+    ? InferShape<Shape> & { [key: string]: any }
+    : Strictness extends ObjectStrictness.Strip
+      ? InferShape<Shape> & { [key: string]: any }
+      : Strictness extends ObjectStrictness.Catchall<ZodBase<any>>
+        ? InferShape<Shape> & Record<Exclude<string, keyof Shape>, CatchallType> // FIXME:
+        : never;
 
 type OutputShape<
   Shape extends ObjectShape,
@@ -62,17 +62,17 @@ type OutputShape<
     | ObjectStrictness.Strict
     | ObjectStrictness.Passthrough
     | ObjectStrictness.Strip
-    | ObjectStrictness.Catchall<ZodBase<any>>
+    | ObjectStrictness.Catchall<ZodBase<any>>,
 > = InferShape<Shape> &
   (Strictness extends ObjectStrictness.Strict
     ? {}
     : Strictness extends ObjectStrictness.Passthrough
-    ? { [key: string]: any }
-    : Strictness extends ObjectStrictness.Strip
-    ? {}
-    : Strictness extends ObjectStrictness.Catchall<ZodBase<any>>
-    ? { [key: string]: Infer<Strictness["schema"]> }
-    : {});
+      ? { [key: string]: any }
+      : Strictness extends ObjectStrictness.Strip
+        ? {}
+        : Strictness extends ObjectStrictness.Catchall<ZodBase<any>>
+          ? { [key: string]: Infer<Strictness["schema"]> }
+          : {});
 
 class ZodObject<
   Shape extends ObjectShape,
@@ -80,7 +80,7 @@ class ZodObject<
     | ObjectStrictness.Strict
     | ObjectStrictness.Passthrough
     | ObjectStrictness.Strip
-    | ObjectStrictness.Catchall<ZodBase<any>>
+    | ObjectStrictness.Catchall<ZodBase<any>>,
 > extends ZodBase<
   // input
   InputShape<Shape, Strictness>,
@@ -128,12 +128,12 @@ class ZodObject<
                   .map((key) => ({
                     key,
                     result: catchallStrictness.schema.safeParse(
-                      (input as any)[key]
+                      (input as any)[key],
                     ) as Check.Result,
                   }));
 
                 const unknownFailedKeys = unknownKeysResult.filter(
-                  ({ result }) => !result.success
+                  ({ result }) => !result.success,
                 ) as {
                   key: string;
                   result: Check.FailedResult;
@@ -148,14 +148,14 @@ class ZodObject<
                       } failed passthrough schema:` +
                       unknownFailedKeys.map(
                         ({ key, result }) =>
-                          `\n\t"${key}" -> ${result.errorMessage}`
+                          `\n\t"${key}" -> ${result.errorMessage}`,
                       ),
                   };
 
                 unknownKeysResult.forEach(({ key, result }) => {
                   if (!result.success)
                     throw Error(
-                      "passthrough did not result in error but success is false"
+                      "passthrough did not result in error but success is false",
                     );
                 });
                 break;
@@ -173,7 +173,7 @@ class ZodObject<
           const missingKeys = Object.keys(shape).filter(
             (key) =>
               (input as any)[key] === undefined &&
-              !(shape[key] instanceof ZodOptional)
+              !(shape[key] instanceof ZodOptional),
           );
           if (missingKeys.length > 0)
             return {
@@ -198,7 +198,7 @@ class ZodObject<
                   ({ key, result }) =>
                     `\n\t- "${key}": ${
                       (result as Check.FailedResult).errorMessage
-                    }`
+                    }`,
                 ),
             };
 
@@ -209,7 +209,7 @@ class ZodObject<
         const shapeKeys = new Set<keyof Shape>(Object.keys(shape));
         const inputKeys = new Set<keyof typeof input>(Object.keys(input));
         const unknownKeys = new Set<Omit<keyof typeof input, keyof Shape>>(
-          inputKeys.difference(shapeKeys)
+          inputKeys.difference(shapeKeys),
         );
 
         const partialOutput: Partial<InferShape<Shape>> = {};
@@ -222,7 +222,7 @@ class ZodObject<
           const value = input[key];
           if (value === undefined)
             throw Error(
-              "value indexed with keyof schema is undefined despite baseCheck running successfull"
+              "value indexed with keyof schema is undefined despite baseCheck running successfull",
             );
           const result = schema.__transform(value);
           partialOutput[key] = result;
@@ -248,7 +248,7 @@ class ZodObject<
               else if (strictness.mode === "catchall")
                 partialUnknownOutput[key as keyof typeof partialUnknownOutput] =
                   strictness.schema.__transform(
-                    input[key as keyof typeof input]
+                    input[key as keyof typeof input],
                   );
             });
 
@@ -290,7 +290,7 @@ class ZodObject<
           ? S[k]
           : never
         : S[k];
-    }
+    },
   ) => {
     const oldShapeKeys = new Set<keyof Shape>(Object.keys(this.shape));
     const newShapeKeys = new Set<keyof S>(Object.keys(shape));
@@ -347,12 +347,12 @@ class ZodObject<
     return new ZodObject(newShape, this.strictness);
   };
 
-  pick = <K extends keyof Shape>(pickShape: {
-    [L in K]: L extends keyof Shape ? true : never;
+  pick = <Keys extends keyof Shape>(pickShape: {
+    [K in Keys]: K extends keyof Shape ? true : never;
   }) => {
-    const newShape = {} as { [L in K]: Shape[L] };
+    const newShape = {} as { [L in Keys]: Shape[L] };
 
-    (Object.keys(pickShape) as K[]).forEach((key) => {
+    (Object.keys(pickShape) as Keys[]).forEach((key) => {
       newShape[key] = this.shape[key];
     });
 
@@ -360,15 +360,14 @@ class ZodObject<
   };
 
   omit = <Keys extends keyof Shape>(omitShape: {
-    [K in keyof Shape]?: K extends keyof Shape ? true : never;
+    [K in Keys]?: K extends keyof Shape ? true : never;
   }) => {
+    type NewKeys = Exclude<keyof Shape, Keys>;
     const newShape = {} as Omit<Shape, Keys>;
 
     (Object.keys(this.shape) as (keyof Shape)[]).forEach((key) => {
-      if (!omitShape[key])
-        newShape[key as Exclude<keyof Shape, Keys>] = this.shape[
-          key
-        ] as Shape[Exclude<keyof Shape, Keys>]; // did not find a better way 😔
+      if (!omitShape.hasOwnProperty(key))
+        newShape[key as NewKeys] = this.shape[key] as Shape[NewKeys];
     });
 
     return new ZodObject(newShape, this.strictness);
@@ -394,12 +393,12 @@ export const looseObject = <Shape extends ObjectShape>(shape: Shape) =>
 export const strictObject = <Shape extends ObjectShape>(shape: Shape) =>
   new ZodObject<Shape, ObjectStrictness.Strict>(shape, { mode: "strict" });
 
-const catchallObject = <
+export const catchallObject = <
   Shape extends ObjectShape,
-  CatchallSchema extends ZodBase<any>
+  CatchallSchema extends ZodBase<any>,
 >(
   shape: Shape,
-  schema: CatchallSchema
+  schema: CatchallSchema,
 ) =>
   new ZodObject<Shape, ObjectStrictness.Catchall<CatchallSchema>>(shape, {
     mode: "catchall",
