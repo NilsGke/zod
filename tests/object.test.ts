@@ -123,17 +123,20 @@ describe("z.object().catchall()", () => {
     expect(
       z
         .object({
-          hello: z.string(),
+          foo: z.string(),
+          bar: z.number(),
         })
-        .catchall(z.number())
+        .catchall(z.boolean())
         .parse({
-          hello: "world",
-          test: 1234,
-        } as any), // FIXME: this should not need as any but types are scuffed
+          foo: "hi",
+          bar: 4321,
+          test: true,
+        }),
     ).toEqual({
-      hello: "world",
-      test: 1234,
-    } as any);
+      foo: "hi",
+      bar: 4321,
+      test: true,
+    });
   });
 
   test("error in base object", () => {
