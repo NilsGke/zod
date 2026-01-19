@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { z } from "../src";
 import { expectZodErrorMessage } from "./util";
+import { ZodOptional } from "../src/base";
 
 describe("z.object()", () => {
   test("empty object", () => {
@@ -331,5 +332,35 @@ describe("z.object().partial()", () => {
 
   test("direct optional propert", () => {
     expect(z.object({ foo: z.number().optional() }).parse({})).toEqual({});
+  });
+});
+
+describe("z.object().required()", () => {
+  const a = z.number();
+  const b = z.string();
+
+  test("requrired unwraps all direct properties from ZodOptional", () => {
+    Object.values(
+      z
+        .object({
+          foo: z.optional(a),
+          bar: b.optional(),
+        })
+        .partial()
+        .required().shape,
+    ).forEach((prop) => expect(prop).not.toBeInstanceOf(ZodOptional));
+  });
+
+  test("parse partial object on required", () => {
+    expectZodErrorMessage(
+      z
+        .object({
+          foo: z.optional(a),
+          bar: b.optional(),
+        })
+        .partial()
+        .required()
+        .safeParse({} as any),
+    ).toMatch(/object is missing keys:.*/);
   });
 });

@@ -1,7 +1,7 @@
 import { ZodAny } from "./any";
 import { ZodBase, ZodOptional } from "./base";
 import _enum from "./enum";
-import type { Check, Infer, Parse } from "./types";
+import type { Check, Infer, Parse, RecursiveOptionalUnwrap } from "./types";
 
 type ObjectShape = Record<string, ZodBase<any, any>>;
 
@@ -394,6 +394,20 @@ class ZodObject<
 
     (Object.keys(this.shape) as (keyof Shape)[]).forEach((key) => {
       newShape[key] = new ZodOptional(this.shape[key]);
+    });
+
+    return new ZodObject(newShape, this.strictness);
+  };
+
+  // original zod library warps property in ZodNonOptional
+  required = () => {
+    const newShape = {} as {
+      [K in keyof Shape]: RecursiveOptionalUnwrap<Shape[K]>;
+    };
+
+    (Object.keys(this.shape) as (keyof Shape)[]).forEach((key) => {
+      const val = this.shape[key];
+      newShape[key] = val instanceof ZodOptional ? val.unwrap() : val;
     });
 
     return new ZodObject(newShape, this.strictness);

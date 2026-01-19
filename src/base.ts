@@ -1,4 +1,9 @@
-import type { CheckFunction, Infer, Parse } from "./types";
+import type {
+  CheckFunction,
+  Infer,
+  Parse,
+  RecursiveOptionalUnwrap,
+} from "./types";
 
 export type Transformer<Input, Output> = (input: Input) => Output;
 
@@ -81,9 +86,6 @@ export abstract class ZodBase<Input, Output = Input, PrimitiveInput = Input> {
     return { success: true, result: output };
   }
 }
-
-type RecursiveOptionalUnwrap<K extends ZodBase<any>> =
-  K extends ZodOptional<infer T> ? RecursiveOptionalUnwrap<T> : K;
 
 export class ZodOptional<Schema extends ZodBase<any>> extends ZodBase<
   Infer<Schema> | undefined

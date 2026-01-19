@@ -1,4 +1,4 @@
-import type { ZodBase } from "./base";
+import type { ZodBase, ZodOptional } from "./base";
 
 export type CheckFunction<T> = (input: T) => Check.Result;
 export type TransformerFunction<T, K = T> = (input: T) => K;
@@ -27,3 +27,6 @@ export namespace Parse {
 }
 
 export type Infer<T extends ZodBase<any>> = ReturnType<T["parse"]>;
+
+export type RecursiveOptionalUnwrap<K extends ZodBase<any>> =
+  K extends ZodOptional<infer T> ? RecursiveOptionalUnwrap<T> : K;
