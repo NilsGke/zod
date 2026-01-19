@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { z } from "../src";
 import { expectZodErrorMessage } from "./util";
+import { ZodOptional } from "../src/base";
+import { ZodString } from "../src/string";
 
 describe("z.optional(z.string())", () => {
   test("accepts string", () => {
@@ -18,16 +20,24 @@ describe("z.optional(z.string())", () => {
 
 describe("z.optional(z.string()).unwrap()", () => {
   test("accepts string", () => {
-    expect(z.optional(z.string()).unwarp().parse("hello")).toBe("hello");
+    expect(z.optional(z.string()).unwrap().parse("hello")).toBe("hello");
   });
 
   test("does not accept undefined", () => {
     expectZodErrorMessage(
       z
         .optional(z.string())
-        .unwarp()
+        .unwrap()
         .safeParse(undefined as any),
     ).toMatch(/input must be.+/);
+  });
+});
+
+describe("z.xyz().optional().optional().optional().unwrap()", () => {
+  test("unwraps recursively", () => {
+    const k = z.string().optional().optional().optional().unwrap();
+    expect(k).not.toBeInstanceOf(ZodOptional);
+    expect(k).toBeInstanceOf(ZodString);
   });
 });
 

@@ -82,6 +82,9 @@ export abstract class ZodBase<Input, Output = Input, PrimitiveInput = Input> {
   }
 }
 
+type RecursiveOptionalUnwrap<K extends ZodBase<any>> =
+  K extends ZodOptional<infer T> ? RecursiveOptionalUnwrap<T> : K;
+
 export class ZodOptional<Schema extends ZodBase<any>> extends ZodBase<
   Infer<Schema> | undefined
 > {
@@ -106,8 +109,11 @@ export class ZodOptional<Schema extends ZodBase<any>> extends ZodBase<
     return this;
   }
 
-  unwarp() {
-    return this.baseSchema;
+  // FIXME: this should clone the element and not returnt he actual instance but clone is currently not implemented anywhere
+  unwrap(): RecursiveOptionalUnwrap<Schema> {
+    const k = this.baseSchema;
+    if (k instanceof ZodOptional) return k.unwrap();
+    return k as RecursiveOptionalUnwrap<Schema>;
   }
 }
 
