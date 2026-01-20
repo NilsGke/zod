@@ -9,22 +9,24 @@ import unknown from "./unknown";
 import any from "./any";
 import never from "./never";
 import { object, looseObject, strictObject } from "./object";
+import array from "./array";
 
 export const z = {
-  string,
-  number,
+  any,
+  array,
   boolean,
   enum: _enum,
-  stringbool,
-  optional,
+  looseObject,
   nullable,
   nullish,
-  unknown,
-  any,
+  number,
   never,
+  optional,
   object,
-  looseObject,
+  string,
+  stringbool,
   strictObject,
+  unknown,
 };
 
 export namespace z {
