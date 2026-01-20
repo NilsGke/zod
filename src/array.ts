@@ -43,7 +43,7 @@ export class ZodArray<Schema extends ZodBase<any>> extends ZodBase<
         ? { success: true }
         : {
             success: false,
-            errorMessage: `array must have less then ${max} entries`,
+            errorMessage: `array must have less then ${max} ${max === 1 ? "entry" : "entries"}`,
           },
     );
   }
@@ -54,7 +54,7 @@ export class ZodArray<Schema extends ZodBase<any>> extends ZodBase<
         ? { success: true }
         : {
             success: false,
-            errorMessage: `array must have at least ${min} entries`,
+            errorMessage: `array must have at least ${min} ${min === 1 ? "entry" : "entries"}`,
           },
     );
   }
@@ -65,9 +65,13 @@ export class ZodArray<Schema extends ZodBase<any>> extends ZodBase<
         ? { success: true }
         : {
             success: false,
-            errorMessage: `array must have exactly ${n} entries`,
+            errorMessage: `array must have exactly ${n} ${n === 1 ? "entry" : "entries"}`,
           },
     );
+  }
+
+  nonempty() {
+    return this.min(1);
   }
 
   clone(): this {

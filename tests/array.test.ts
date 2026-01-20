@@ -67,4 +67,11 @@ describe("z.array().min().max().length()", () => {
     const k = [0, 1, 2];
     expect(z.array(z.number()).length(3).parse(k)).toMatchObject(k);
   });
+
+  test("z.array().nonempty()", () => {
+    expect(z.array(z.any()).parse([0])).toMatchObject([0]);
+    expectZodErrorMessage(z.array(z.any()).nonempty().safeParse([])).toMatch(
+      "array must have at least 1 entry",
+    );
+  });
 });
