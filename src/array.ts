@@ -37,8 +37,41 @@ export class ZodArray<Schema extends ZodBase<any>> extends ZodBase<
 
   unwrap = () => this.schema;
 
+  max(max: number) {
+    return this.cloneAndAddCheck((input) =>
+      input.length <= max
+        ? { success: true }
+        : {
+            success: false,
+            errorMessage: `array must have less then ${max} entries`,
+          },
+    );
+  }
+
+  min(min: number) {
+    return this.cloneAndAddCheck((input) =>
+      input.length >= min
+        ? { success: true }
+        : {
+            success: false,
+            errorMessage: `array must have at least ${min} entries`,
+          },
+    );
+  }
+
+  length(n: number) {
+    return this.cloneAndAddCheck((input) =>
+      input.length === n
+        ? { success: true }
+        : {
+            success: false,
+            errorMessage: `array must have exactly ${n} entries`,
+          },
+    );
+  }
+
   clone(): this {
-    throw new Error("Method not implemented.");
+    return new ZodArray(this.schema, this.checks) as this;
   }
 }
 
