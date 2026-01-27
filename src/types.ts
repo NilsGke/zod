@@ -26,7 +26,9 @@ export namespace Parse {
   export type Result<T> = SuccessfulResult<T> | FailedResult;
 }
 
-export type Infer<T extends ZodBase<any>> = ReturnType<T["parse"]>;
+export type Input<T extends ZodBase<any>> = Parameters<T["parse"]>[0];
+export type Output<T extends ZodBase<any>> = ReturnType<T["parse"]>;
+export type Infer<T extends ZodBase<any>> = Output<T>;
 
 export type RecursiveOptionalUnwrap<K extends ZodBase<any>> =
   K extends ZodOptional<infer T> ? RecursiveOptionalUnwrap<T> : K;

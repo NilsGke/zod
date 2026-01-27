@@ -1,7 +1,13 @@
 import { ZodAny } from "./any";
 import { ZodBase, ZodOptional } from "./base";
 import _enum from "./enum";
-import type { Check, Infer, Parse, RecursiveOptionalUnwrap } from "./types";
+import type {
+  Check,
+  Input,
+  Output,
+  Parse,
+  RecursiveOptionalUnwrap,
+} from "./types";
 
 type ObjectShape = Record<string, ZodBase<any, any>>;
 
@@ -14,10 +20,16 @@ type OptionalKeys<Shape extends ObjectShape> = {
   [Key in keyof Shape]: Shape[Key] extends ZodOptional<any> ? Key : never;
 }[keyof Shape];
 
-type InferShape<Shape extends ObjectShape> = {
-  [Key in Exclude<RequiredKeys<Shape>, never>]: Infer<Shape[Key]>;
+type InferInputShape<Shape extends ObjectShape> = {
+  [Key in Exclude<RequiredKeys<Shape>, never>]: Input<Shape[Key]>;
 } & {
-  [K in Exclude<OptionalKeys<Shape>, never>]?: Infer<Shape[K]>;
+  [K in Exclude<OptionalKeys<Shape>, never>]?: Input<Shape[K]>;
+};
+
+type InferOutputShape<Shape extends ObjectShape> = {
+  [Key in Exclude<RequiredKeys<Shape>, never>]: Output<Shape[Key]>;
+} & {
+  [K in Exclude<OptionalKeys<Shape>, never>]?: Output<Shape[K]>;
 };
 
 namespace ObjectStrictness {
@@ -45,16 +57,16 @@ type InputShape<
     ? string
     : never,
 > = Strictness extends ObjectStrictness.Strict
-  ? InferShape<Shape>
+  ? InferInputShape<Shape>
   : Strictness extends ObjectStrictness.Passthrough
-    ? InferShape<Shape> & { [key: string]: any }
+    ? InferInputShape<Shape> & { [key: string]: any }
     : Strictness extends ObjectStrictness.Strip
-      ? InferShape<Shape> & { [key: string]: any }
+      ? InferInputShape<Shape> & { [key: string]: any }
       : Strictness extends ObjectStrictness.Catchall<infer CatchallSchema>
         ? {
             [Key in keyof Shape | UnknownKeys]: Key extends keyof Shape
-              ? Infer<Shape[Key]>
-              : Infer<CatchallSchema>;
+              ? Input<Shape[Key]>
+              : Input<CatchallSchema>;
           }
         : never;
 
@@ -70,23 +82,23 @@ type OutputShape<
     ? string
     : never,
 > = Strictness extends ObjectStrictness.Strict
-  ? InferShape<Shape>
+  ? InferOutputShape<Shape>
   : Strictness extends ObjectStrictness.Passthrough
-    ? InferShape<Shape> & { [key: string]: any }
+    ? InferOutputShape<Shape> & { [key: string]: any }
     : Strictness extends ObjectStrictness.Strip
-      ? InferShape<Shape>
+      ? InferOutputShape<Shape>
       : Strictness extends ObjectStrictness.Catchall<infer CatchallSchema>
         ? // diffirentiate between `string` and literals (`foo` | `bar`)
           string extends UnknownKeys
           ? // UnknownKeys is `string`
             // we dont know the keys that are defined in the input but not in the shape
             // FIXME: this leads to a type error `Argument of type '{ foo: string; bar: number; test: true; }' is not assignable to parameter of type '{ foo: string; bar: number; } & {} & { [Key: string]: boolean; }'.`
-            InferShape<Shape> & { [Key: string]: Infer<CatchallSchema> }
+            InferOutputShape<Shape> & { [Key: string]: Output<CatchallSchema> }
           : // UnknownKeys is literal
             {
               [Key in keyof Shape | UnknownKeys]: Key extends keyof Shape
-                ? Infer<Shape[Key]>
-                : Infer<CatchallSchema>;
+                ? Output<Shape[Key]>
+                : Output<CatchallSchema>;
             }
         : never;
 
@@ -228,7 +240,7 @@ class ZodObject<
           inputKeys.difference(shapeKeys),
         );
 
-        const partialOutput: Partial<InferShape<Shape>> = {};
+        const partialOutput: Partial<InferOutputShape<Shape>> = {};
 
         // transform shape keys
         shapeKeys.forEach((key) => {
@@ -244,7 +256,7 @@ class ZodObject<
           partialOutput[key] = result;
         });
 
-        const output = partialOutput as InferShape<Shape>;
+        const output = partialOutput as InferOutputShape<Shape>;
 
         // filter out incorrect keys
         switch (strictness.mode) {

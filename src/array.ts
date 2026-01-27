@@ -1,8 +1,9 @@
 import { ZodBase } from "./base";
-import type { CheckFunction, Infer } from "./types";
+import type { CheckFunction, Infer, Input, Output } from "./types";
 
 export class ZodArray<Schema extends ZodBase<any>> extends ZodBase<
-  Infer<Schema>[]
+  Input<Schema>[],
+  Output<Schema>[]
 > {
   schema: Schema;
 

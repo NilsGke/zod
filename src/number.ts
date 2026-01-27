@@ -1,7 +1,7 @@
 import { ZodBase } from "./base";
 import type { CheckFunction } from "./types";
 
-class ZodNumber extends ZodBase<number> {
+export class ZodNumber extends ZodBase<number> {
   constructor(checks?: CheckFunction<number>[]) {
     super({
       typeCheck: (input: unknown) => typeof input === "number",

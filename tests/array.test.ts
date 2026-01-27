@@ -28,6 +28,12 @@ describe("z.array()", () => {
       z.array(z.array(z.array(z.string()))).safeParse(l as any),
     ).toMatch(/array entry does not match/);
   });
+
+  test("correctly maps input and output types", () =>
+    expect(z.array(z.stringbool()).parse(["true", "false"])).toMatchObject([
+      true,
+      false,
+    ]));
 });
 
 describe("z.array().unwrap()", () => {

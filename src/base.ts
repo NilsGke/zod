@@ -1,6 +1,7 @@
 import type {
   CheckFunction,
-  Infer,
+  Input,
+  Output,
   Parse,
   RecursiveOptionalUnwrap,
 } from "./types";
@@ -88,7 +89,8 @@ export abstract class ZodBase<Input, Output = Input, PrimitiveInput = Input> {
 }
 
 export class ZodOptional<Schema extends ZodBase<any>> extends ZodBase<
-  Infer<Schema> | undefined
+  Input<Schema> | undefined,
+  Output<Schema> | undefined
 > {
   private baseSchema: Schema;
 

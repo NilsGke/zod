@@ -55,6 +55,11 @@ describe("z.object()", () => {
       hello: "world",
     });
   });
+
+  test("correctly maps input and output types", () =>
+    expect(
+      z.object({ foo: z.stringbool() }).parse({ foo: "true" }),
+    ).toMatchObject({ foo: true }));
 });
 
 describe("z.looseObject()", () => {
