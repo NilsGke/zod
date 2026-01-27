@@ -1,26 +1,31 @@
 import { ZodBase } from "./base";
-import type { ZodNumber } from "./number";
-import number from "./number";
-import type { ZodString } from "./string";
-import string from "./string";
 import type { Input, Output } from "./types";
 
-type InferInputArray<T extends readonly ZodBase<any>[]> = {
-  [K in keyof T]: Input<T[K]>;
-};
+type Rest = ZodBase<any> | null;
 
-type InferOutputArray<T extends readonly ZodBase<any>[]> = {
-  [K in keyof T]: Output<T[K]>;
-};
+type InferInputArray<T extends readonly ZodBase<any>[], R extends Rest> = [
+  ...{
+    [K in keyof T]: Input<T[K]>;
+  },
+  ...(R extends ZodBase<any> ? Input<R>[] : never),
+];
+
+type InferOutputArray<T extends readonly ZodBase<any>[], R extends Rest> = [
+  ...{
+    [K in keyof T]: Output<T[K]>;
+  },
+  ...(R extends ZodBase<any> ? Output<R>[] : never),
+];
 
 export class ZodTuple<
   TupleTypes extends readonly [ZodBase<any>, ...ZodBase<any>[]],
+  RestType extends Rest,
 > extends ZodBase<
-  InferInputArray<TupleTypes>,
-  InferOutputArray<TupleTypes>,
+  InferInputArray<TupleTypes, RestType>,
+  InferOutputArray<TupleTypes, RestType>,
   Array<any>
 > {
-  constructor(tupleSchemas: TupleTypes) {
+  constructor(tupleSchemas: TupleTypes, rest: RestType) {
     if (tupleSchemas.length === 0)
       throw Error("tuple schemas must have at least one item");
 
@@ -35,7 +40,7 @@ export class ZodTuple<
               errorMessage: "tuple is missing at least one element",
             };
 
-          if (input.length > tupleSchemas.length)
+          if (rest === null && input.length > tupleSchemas.length)
             return {
               success: false,
               errorMessage: "tuple has more elements then allowed",
@@ -53,13 +58,26 @@ export class ZodTuple<
               };
           }
 
+          // loop over only elements that do not have a dedicated schema
+          if (rest)
+            for (let i = tupleSchemas.length; i < input.length; i++) {
+              const result = rest.safeParse(input);
+              if (!result.success)
+                return {
+                  success: false,
+                  errorMessage:
+                    "incorrect tuple rest value:\n\t" +
+                    result.errorMessage.split("\n").join("\n\t"),
+                };
+            }
+
           return { success: true };
         },
       ],
       transformer: (input) =>
-        tupleSchemas.map((schema, i) =>
-          schema.parse(input[i]),
-        ) as InferOutputArray<TupleTypes>,
+        input.map((value, i) =>
+          (tupleSchemas.at(i) || rest)?.parse(value),
+        ) as InferOutputArray<TupleTypes, Rest>,
     });
   }
 
@@ -68,8 +86,12 @@ export class ZodTuple<
   }
 }
 
-const tuple = <Types extends readonly [ZodBase<any>, ...ZodBase<any>[]]>(
+const tuple = <
+  Types extends readonly [ZodBase<any>, ...ZodBase<any>[]],
+  Rest extends ZodBase<any>,
+>(
   types: Types,
-) => new ZodTuple(types);
+  rest: Rest | null = null,
+) => new ZodTuple(types, rest);
 
 export default tuple;
